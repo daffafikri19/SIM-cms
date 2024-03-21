@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { EyeIcon } from "lucide-react";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export const FormLogin = () => {
   
@@ -27,7 +28,11 @@ export const FormLogin = () => {
           <div className="absolute right-0 p-1 border rounded-r-md cursor-pointer hover:bg-primary-foreground"
             onClick={() => setIsShowPassword(!isShowPassword)}
           >
-            <EyeIcon />
+            {isShowPassword ? (
+              <EyeOffIcon />
+            ) : (
+              <EyeIcon />
+            )}
           </div>
         </div>
       </div>

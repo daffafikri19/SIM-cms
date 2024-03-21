@@ -2,6 +2,8 @@ import React from 'react'
 
 export const Navbar = () => {
   return (
-    <div>Navbar</div>
+    <nav className='h-[69px] border-b w-full'>
+      Navbar
+    </nav>
   )
 }
