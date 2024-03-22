@@ -25,9 +25,7 @@ export default function RootLayout({
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
+          enableSystem>
           <div>
           {children}
           <Toaster richColors position="top-right" closeButton />

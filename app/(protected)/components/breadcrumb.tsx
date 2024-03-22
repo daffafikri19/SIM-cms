@@ -18,7 +18,7 @@ export const DashboardBreadcrumb = () => {
 
   return (
     <div className="h-10 w-full border-b flex items-center pl-4">
-      <Breadcrumb>
+      <Breadcrumb className="w-full">
         <BreadcrumbList>
           {routeParts.map((path, index) => {
             return (

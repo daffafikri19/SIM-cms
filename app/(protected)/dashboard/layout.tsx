@@ -1,22 +1,9 @@
 import React, { ReactNode } from "react";
 import { Navbar } from "../components/navbar";
 import { Sidebar } from "../components/sidebar";
-import {
-  Breadcrumb,
-  BreadcrumbEllipsis,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { DashboardBreadcrumb } from "../components/breadcrumb";
+import Container from "../components/container";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 type props = {
   children: ReactNode;
@@ -25,16 +12,14 @@ type props = {
 const DashboardLayout = ({ children }: props) => {
   return (
     <div className="w-full h-full">
-      <div className="flex h-full">
-        <div className="h-full">
-          <Sidebar />
-        </div>
-        <div className="w-full">
-          <Navbar />
-          <div>
+      <Navbar />
+      <div className="flex pt-12 w-full h-full">
+        <Sidebar />
+        <div className="w-full overflow-x-hidden">
+          <Container>
             <DashboardBreadcrumb />
-          </div>
-          <div className="p-2">{children}</div>
+            <div className="p-2">{children}</div>
+          </Container>
         </div>
       </div>
     </div>
