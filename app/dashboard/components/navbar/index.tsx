@@ -1,14 +1,16 @@
-import { ThemeSwicther } from "@/components/global/theme-switcher";
 import React from "react";
+import { UserDropdown } from "./user-dropdown";
 import { UserAvatar } from "./user-avatar";
+import { UserBox } from "./user-box";
 
 export const DashboardNavbar = () => {
   return (
     <nav className="w-full flex items-center justify-between">
       <div></div>
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-2">
         <UserAvatar />
-        <ThemeSwicther />
+        <UserBox />
+        <UserDropdown />
       </div>
     </nav>
   );

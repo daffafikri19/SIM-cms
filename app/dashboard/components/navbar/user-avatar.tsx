@@ -6,6 +6,6 @@ export const UserAvatar = () => {
    const isBoy = true;
 
   return (
-    <Avatar className='cursor-pointer' shape='circle' src={isBoy ? "/avatar-boy.png" : "/avatar-girl.png"} />
+    <Avatar size={"large"} className='cursor-pointer' shape='circle' src={isBoy ? "/avatar-boy.png" : "/avatar-girl.png"} />
   )
 }

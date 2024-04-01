@@ -10,7 +10,6 @@ export const BreadCrumb = () => {
     const href = `/${routeParts.slice(0, index + 1).join("/")}`;
     let title = (part.charAt(0).toUpperCase() + part.slice(1)) as any;
     let isDisabled = false;
-    console.log(title);
     switch (part) {
       case "pengaturan":
       case "menu":
