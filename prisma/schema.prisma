@@ -1,0 +1,147 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native"]
+}
+
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+model user {
+  id                String              @id @default(cuid())
+  name              String              @unique @db.VarChar(100)
+  email             String              @unique @db.VarChar(50)
+  profile_picture   String?             @db.Text
+  role_id           Int                 @unique
+  role              user_role           @relation(fields: [role_id], references: [id])
+  password          String              @db.LongText
+  shift             String              @db.VarChar(10)
+  created_at        DateTime            @default(dbgenerated("CURRENT_TIMESTAMP")) @db.Timestamp()
+  updated_at        DateTime            @default(dbgenerated("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")) @db.Timestamp()
+  report_ingredient report_ingredient[]
+  report_finance    report_finance[]
+  report_stok       report_stock[]
+}
+
+model user_role {
+  id   Int    @id @default(autoincrement())
+  name String @db.VarChar(30)
+  user user[]
+}
+
+model report_ingredient {
+  id               String                   @id @default(cuid())
+  user_id          String?                  @unique
+  reporter         user?                    @relation(fields: [user_id], references: [id])
+  detail_report_id Int                      @unique
+  detail           detail_report_ingredient @relation(fields: [detail_report_id], references: [id])
+  report_date      DateTime @db.Timestamp() @default(dbgenerated("CURRENT_TIMESTAMP"))
+}
+
+model detail_report_ingredient {
+  id            Int                 @id @default(autoincrement())
+  ingredient_id Int                 @unique
+  ingredient    ingredient          @relation(fields: [ingredient_id], references: [id])
+  quantity      Int
+  report        report_ingredient[]
+}
+
+model ingredient {
+  id            Int                       @id @default(autoincrement())
+  name          String                    @db.VarChar(50)
+  categories    ingredient_category[]
+  detail_report detail_report_ingredient?
+}
+
+model ingredient_category {
+  id            Int         @id @default(autoincrement())
+  name          String      @db.VarChar(30)
+  ingredient_id Int?        @unique
+  ingredient    ingredient? @relation(fields: [ingredient_id], references: [id])
+}
+
+model report_finance {
+  id          String     @id @default(cuid())
+  user_id     String?    @unique
+  reporter    user?      @relation(fields: [user_id], references: [id])
+  income      Int
+  cash        Int
+  non_cash    non_cash[]
+  outcome     outcome[]
+  report_date DateTime @db.Timestamp() @default(dbgenerated("CURRENT_TIMESTAMP"))
+}
+
+model non_cash {
+  id             Int            @id @default(autoincrement())
+  report_id      String         @unique
+  report_finance report_finance @relation(fields: [report_id], references: [id])
+  reciept        String         @db.LongText
+  description    String         @db.LongText
+  amount         Int
+}
+
+model outcome {
+  id             Int            @id @default(autoincrement())
+  amount         Int
+  report_id      String         @unique
+  report_finance report_finance @relation(fields: [report_id], references: [id])
+  description    String         @db.LongText
+}
+
+model report_stock {
+  id          String               @id @default(cuid())
+  userId      String?              @unique
+  reporter    user?                @relation(fields: [userId], references: [id])
+  report_date DateTime @db.Timestamp() @default(dbgenerated("CURRENT_TIMESTAMP"))
+  detail      detail_report_stok[]
+}
+
+model detail_report_stok {
+  id                      Int          @id @default(autoincrement())
+  report_id               String       @unique
+  report                  report_stock @relation(fields: [report_id], references: [id])
+  afternoon_stok          Int
+  night_stok              Int
+  afternoon_quantity_sale Int
+  night_quantity_sale     Int
+  total_sale              Int
+  first_expired_date      DateTime @db.Timestamp() @default(dbgenerated("CURRENT_TIMESTAMP"))
+  last_production_date    DateTime @db.Timestamp() @default(dbgenerated("CURRENT_TIMESTAMP"))
+  withdrawal              Int
+}
+
+model product {
+  id          String           @id @default(cuid())
+  name        String           @db.VarChar(50)
+  picture     String           @db.LongText
+  price       Int
+  category_Id Int              @unique
+  category    category_product @relation(fields: [category_Id], references: [id])
+  created_at  DateTime         @default(dbgenerated("CURRENT_TIMESTAMP")) @db.Timestamp()
+  updated_at  DateTime         @default(dbgenerated("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")) @db.Timestamp()
+}
+
+model category_product {
+  id      Int       @id @default(autoincrement())
+  product product[]
+  name    String    @db.VarChar(50)
+}
+
+model order_request {
+  id Int @id @default(autoincrement())
+}
+
+model detail_order {
+  id              Int      @id @default(autoincrement())
+  expired_date    DateTime @db.Timestamp()
+  quantity        Int
+  production_date DateTime @db.Timestamp() @default(dbgenerated("CURRENT_TIMESTAMP"))
+}

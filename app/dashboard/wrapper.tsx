@@ -17,7 +17,6 @@ import { useRouter } from "next/navigation";
 
 type props = {
   children: React.ReactNode;
-  cookie: string | undefined | null;
 };
 
 const { Header, Sider, Content } = Layout;
@@ -34,7 +33,7 @@ interface decodedToken {
   iat: number;
 }
 
-const DashboardLayoutWrapper = ({ children, cookie }: props) => {
+const DashboardLayoutWrapper = ({ children }: props) => {
   const router = useRouter();
   const {
     token: { colorBgContainer, borderRadiusLG },
@@ -50,7 +49,6 @@ const DashboardLayoutWrapper = ({ children, cookie }: props) => {
     setExp,
     setIat
   } = useAuthContext();
-  const { token, setToken } = useToken();
   const matches = useMediaQuery("(max-width: 800px)");
 
   const { collapsed, onExpand, onCollapse } = useSidebar((state) => state);
@@ -62,39 +60,6 @@ const DashboardLayoutWrapper = ({ children, cookie }: props) => {
       onExpand();
     }
   }, [matches, onCollapse, onExpand]);
-
-  useEffect(() => {
-    const refreshToken = async () => {
-      try {
-        const res = await axios.get(
-          process.env.NEXT_PUBLIC_BACKEND_SERVER_URL + "/api/auth/token",
-          {
-            withCredentials: true,
-          }
-        );
-        setToken(res.data.data.token);
-        const decoded = jwtDecode(res.data.data.token) as decodedToken;
-        setId(decoded.id);
-        setName(decoded.name);
-        setEmail(decoded.email);
-        setPhoneNumber(decoded.phone_number);
-        setJobdesk(decoded.jobdesk);
-        setRole(decoded.role);
-        setProfilePicture(decoded.profile_picture);
-        setExp(decoded.exp)
-        setIat(decoded.iat)
-        console.log(decoded.iat)
-      } catch (error : any) {
-        if(error.response) {
-          router.push("/");
-        }
-      }
-    };
-
-    refreshToken();
-  }, [router]);
-
-
 
   return (
     <Layout className="w-full min-h-[100dvh] h-full relative">

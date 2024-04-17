@@ -7,8 +7,7 @@ type props = {
 };
 
 const DashboardLayout = ({ children }: props) => {
-  const token = cookies().get("refreshToken")?.value
-  return <DashboardLayoutWrapper cookie={token}>{children}</DashboardLayoutWrapper>;
+  return <DashboardLayoutWrapper>{children}</DashboardLayoutWrapper>;
 };
 
 export default DashboardLayout;

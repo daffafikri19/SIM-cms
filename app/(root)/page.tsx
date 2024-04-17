@@ -7,7 +7,12 @@ export const metadata: Metadata = {
   title: "Fun Bread Bakery - CMS",
 };
 
-export default function HomePage() {
+export type serverProps = {
+  params?: { [key: string]: string | string[] | undefined }
+  searchParams?: { [key: string]: string | string[] | undefined }
+}
+
+export default function HomePage(props: serverProps) {
   return (
     <div className="flex items-center justify-center w-full h-full">
       <div className="container relative grid h-[100dvh] full flex-col items-center justify-center md:grid">
@@ -25,7 +30,7 @@ export default function HomePage() {
                 Masukan email dan password untuk akses CMS
               </p>
             </div>
-            <LoginForm />
+            <LoginForm {...props} />
           </div>
         </div>
         </div>

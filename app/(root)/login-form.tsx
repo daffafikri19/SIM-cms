@@ -1,43 +1,50 @@
 "use client";
 
 import React, { useState } from "react";
-import axios from "axios";
 import { Button, Form, type FormProps, Input, Alert } from "antd";
 import { useLoadingContext } from "@/store/use-loading";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { serverProps } from "./page";
 
 type FieldType = {
   email?: string;
   password?: string;
 };
 
-export const LoginForm = () => {
+export const LoginForm = (props : serverProps) => {
   const { loading, setLoading } = useLoadingContext();
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
 
+  console.log(props.searchParams?.callbackUrl)
+  if(props.searchParams?.callbackUrl) {
+    redirect("/")
+  }
+  
   const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const res = await axios.post(
-        process.env.NEXT_PUBLIC_BACKEND_SERVER_URL + "/api/auth/login",
-        {
-          email: values.email,
-          password: values.password,
-        },
-        {
-          withCredentials: true
-        }
-      );
-      router.push("/dashboard")
-      setLoading(false)
-      return res.data
-    } catch (error: any) {
-      if(error.response) {
-        setErrorMessage(error.response.data.message);
+      const result = await signIn("credentials", {
+        email: values.email,
+        password: values.password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setErrorMessage(result?.error);
+        console.log(result?.error);
+        setLoading(false);
+      } else {
+        console.log(result);
+        return (router.push("/dashboard"));
       }
-      console.log(error);
-      setLoading(false)
+    } catch (error : any) {
+      setErrorMessage(error?.message);
+      console.log("error auth", error);
+      setLoading(false);
+    } finally {
+      setLoading(false);
     }
   };
 
