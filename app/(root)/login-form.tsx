@@ -17,7 +17,6 @@ export const LoginForm = (props : serverProps) => {
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
 
-  console.log(props.searchParams?.callbackUrl)
   if(props.searchParams?.callbackUrl) {
     redirect("/")
   }
@@ -42,8 +41,6 @@ export const LoginForm = (props : serverProps) => {
     } catch (error : any) {
       setErrorMessage(error?.message);
       console.log("error auth", error);
-      setLoading(false);
-    } finally {
       setLoading(false);
     }
   };

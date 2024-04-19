@@ -1,13 +1,17 @@
 import React from "react";
 import DashboardLayoutWrapper from "./wrapper";
-import { cookies } from 'next/headers'
+import NProgressBarProvider from "./components/nprogress-provider";
 
 type props = {
   children: React.ReactNode;
 };
 
 const DashboardLayout = ({ children }: props) => {
-  return <DashboardLayoutWrapper>{children}</DashboardLayoutWrapper>;
+  return (
+    <NProgressBarProvider>
+      <DashboardLayoutWrapper>{children}</DashboardLayoutWrapper>
+    </NProgressBarProvider>
+  );
 };
 
 export default DashboardLayout;

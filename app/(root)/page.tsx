@@ -2,6 +2,9 @@ import { Metadata } from "next";
 
 import { LoginForm } from "./login-form";
 import { BrandLogo } from "../dashboard/components/navbar/brand-logo";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/libs/auth";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Fun Bread Bakery - CMS",
@@ -12,7 +15,12 @@ export type serverProps = {
   searchParams?: { [key: string]: string | string[] | undefined }
 }
 
-export default function HomePage(props: serverProps) {
+export default async function HomePage(props: serverProps) {
+  const session = await getServerSession(authOptions);
+  if(session?.user && session?.user.id) {
+    redirect("/dashboard")
+  }
+
   return (
     <div className="flex items-center justify-center w-full h-full">
       <div className="container relative grid h-[100dvh] full flex-col items-center justify-center md:grid">

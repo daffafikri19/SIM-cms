@@ -1,19 +1,33 @@
-"use client"
+"use client";
 
 import React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import {
   AppstoreOutlined,
   SettingOutlined,
   CompassOutlined,
   FileOutlined,
-  UserOutlined
+  UserOutlined,
+  ProductOutlined,
+  FileTextOutlined,
+  FileDoneOutlined,
 } from "@ant-design/icons";
 import { Menu } from "antd";
+import { usePathname } from "next/navigation";
 
+type MenuProps = {
+  label: string;
+  key: string;
+  icon: React.JSX.Element;
+  href?: string | undefined;
+  children?: {
+    label: string;
+    key: string;
+    href?: string;
+  }[];
+}[];
 
-const items = [
+const items: MenuProps = [
   {
     label: "Beranda",
     key: "1",
@@ -24,57 +38,102 @@ const items = [
     label: "Produk",
     key: "2",
     icon: <AppstoreOutlined />,
-    href: "/dashboard/products"
-  },
-  // {
-  //   label: "Navigation Two",
-  //   key: "sub3",
-  //   icon: <AppstoreOutlined />,
-  //   children: [
-  //     { label: "Option 5", key: "5", href: "/option5" },
-  //     { label: "Option 6", key: "6", href: "/option6" },
-  //     {
-  //       label: "Submenu",
-  //       key: "sub4",
-  //       children: [
-  //         { label: "Option 7", key: "7", href: "/option7" },
-  //         { label: "Option 8", key: "8", href: "/option8" },
-  //       ],
-  //     },
-  //   ],
-  // },
-  {
-    label: "Penyimpanan",
-    key: "3",
-    icon: <FileOutlined />,
-    href: "/dashboard/storage",
-  },
-  {
-    label: "Pengaturan",
-    key: "4",
-    icon: <SettingOutlined />,
     children: [
-      { label: "Umum", key: "umum", href: "/dashboard/settings/general" },
-      { label: "Tampilan", key: "tampilan", href: "/dashboard/settings/appearance" },
-      { label: "Aplikasi", key: "aplikasi", href: "/dashboard/settings/application" },
+      { label: "Daftar Produk", key: "21", href: "/dashboard/product" },
+      { label: "Tambah Produk", key: "22", href: "/dashboard/product/add" },
+      {
+        label: "Kategori Produk",
+        key: "23",
+        href: "/dashboard/product/category",
+      },
+    ],
+  },
+  {
+    label: "Bahan Baku",
+    key: "3",
+    icon: <ProductOutlined />,
+    children: [
+      { label: "Daftar Bahan Baku", key: "31", href: "/dashboard/inventory" },
+      {
+        label: "Tambah Bahan Baku",
+        key: "32",
+        href: "/dashboard/inventory/add",
+      },
+    ],
+  },
+  {
+    label: "Resep",
+    key: "4",
+    icon: <FileTextOutlined />,
+    href: "/dashboard/recipe",
+  },
+  {
+    label: "Laporan",
+    key: "5",
+    icon: <FileDoneOutlined />,
+    children: [
+      { label: "Bahan Baku", key: "51", href: "/dashboard/report/inventory" },
+      { label: "Keuangan", key: "52", href: "/dashboard/report/finance" },
+      { label: "Penjualan", key: "53", href: "/dashboard/report/sales" },
     ],
   },
   {
     label: "Kelola Pengguna",
-    key: "z-5",
+    key: "6",
     icon: <UserOutlined />,
     children: [
-      { label: "Daftar Karyawan", key: "daftar-karyawan", href: "/dashboard/manage-users/list-worker" },
-      { label: "Perizinan Akses", key: "perizinan-akses", href: "/dashboard/pengaturan/" },
+      {
+        label: "Daftar Karyawan",
+        key: "daftar-karyawan",
+        href: "/dashboard/manage-user",
+      },
+      {
+        label: "Perizinan Akses",
+        key: "perizinan-akses",
+        href: "/dashboard/manage-user/permission",
+      },
     ],
+  },
+  {
+    label: "Penyimpanan File",
+    key: "7",
+    icon: <FileOutlined />,
+    href: "/dashboard/file-storage",
+  },
+  {
+    label: "Pengaturan",
+    key: "8",
+    icon: <SettingOutlined />,
+    href: "/dashboard/settings",
   },
 ];
 
 export const SidebarMenu = () => {
   const pathname = usePathname();
 
+  const findKey = (items: MenuProps, currentPath: string) => {
+    for (let item of items) {
+      if (item.href === currentPath) {
+        return { selectedKey: item.key, openKey: item.key };
+      }
+      if (item.children) {
+        const foundChild = item.children.find(child => child.href === currentPath);
+        if (foundChild) {
+          return { selectedKey: foundChild.key, openKey: item.key }; // Kembalikan key dari submenu dan menu utama
+        }
+      }
+    }
+  };
+
+  const keys = findKey(items, pathname);
+  const selectedKey = keys?.selectedKey;
+  const openKey = keys?.openKey;
+
+  console.log(selectedKey);
+  console.log(openKey);
+
   const renderMenuItems = (items: any) =>
-    items.map((item : any) => {
+    items.map((item: any) => {
       if (item.children) {
         return (
           <Menu.SubMenu key={item.key} icon={item.icon} title={item.label}>
@@ -91,8 +150,8 @@ export const SidebarMenu = () => {
 
   return (
     <Menu
-      defaultSelectedKeys={["1"]}
-      defaultOpenKeys={["1"]}
+      defaultSelectedKeys={[selectedKey!]}
+      defaultOpenKeys={[openKey!]}
       mode="inline"
     >
       {renderMenuItems(items)}

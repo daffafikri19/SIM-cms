@@ -10,9 +10,6 @@ import { useSidebar } from "@/store/use-sidebar";
 import { useMediaQuery } from "usehooks-ts";
 import { BreadCrumb } from "./components/breadcrumb";
 import { useAuthContext } from "@/store/use-auth";
-import axios from "axios";
-import { useToken } from "@/store/use-token";
-import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
 
 type props = {
