@@ -5,14 +5,14 @@ import { Button, Form, type FormProps, Input, Alert } from "antd";
 import { useLoadingContext } from "@/store/use-loading";
 import { redirect, useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { serverProps } from "./page";
+import { ServerProps } from "@/types";
 
 type FieldType = {
   email?: string;
   password?: string;
 };
 
-export const LoginForm = (props : serverProps) => {
+export const LoginForm = (props : ServerProps) => {
   const { loading, setLoading } = useLoadingContext();
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();

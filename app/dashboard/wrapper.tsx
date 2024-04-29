@@ -1,16 +1,14 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
-import { Layout, Button, theme } from "antd";
+import { Layout, Button, theme, Card } from "antd";
 import { DashboardNavbar } from "./components/navbar";
 import { SidebarMenu } from "./components/sidebar/sidebar-menu";
 import { BrandLogo } from "./components/navbar/brand-logo";
 import { useSidebar } from "@/store/use-sidebar";
 import { useMediaQuery } from "usehooks-ts";
 import { BreadCrumb } from "./components/breadcrumb";
-import { useAuthContext } from "@/store/use-auth";
-import { useRouter } from "next/navigation";
 
 type props = {
   children: React.ReactNode;
@@ -18,34 +16,11 @@ type props = {
 
 const { Header, Sider, Content } = Layout;
 
-interface decodedToken {
-  id: string;
-  name: string;
-  email: string;
-  jobdesk: string;
-  phone_number: string | null;
-  profile_picture: string | null;
-  role: string;
-  exp: number;
-  iat: number;
-}
-
 const DashboardLayoutWrapper = ({ children }: props) => {
-  const router = useRouter();
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
-  const {
-    setId,
-    setName,
-    setEmail,
-    setJobdesk,
-    setPhoneNumber,
-    setProfilePicture,
-    setRole,
-    setExp,
-    setIat
-  } = useAuthContext();
+ 
   const matches = useMediaQuery("(max-width: 800px)");
 
   const { collapsed, onExpand, onCollapse } = useSidebar((state) => state);
@@ -56,6 +31,7 @@ const DashboardLayoutWrapper = ({ children }: props) => {
     } else {
       onExpand();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matches, onCollapse, onExpand]);
 
   return (
@@ -83,7 +59,7 @@ const DashboardLayoutWrapper = ({ children }: props) => {
       <Layout className="relative">
         <Header
           style={{ background: colorBgContainer }}
-          className="flex items-center !px-2 sticky top-0 !h-14 shadow-sm"
+          className="flex items-center !px-2 sticky top-0 !h-14 z-[999] shadow-md"
         >
           <Button
             type="text"
@@ -108,7 +84,7 @@ const DashboardLayoutWrapper = ({ children }: props) => {
           }}
         >
           <BreadCrumb />
-          <div className="p-2">{children}</div>
+          <Card className="p-2">{children}</Card>
         </Content>
       </Layout>
     </Layout>

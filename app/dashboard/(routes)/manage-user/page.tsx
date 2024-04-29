@@ -1,9 +1,14 @@
-import React from 'react'
+import { Card } from "antd";
+import React from "react";
+import { TableData } from "./table-data";
+import { ServerProps, UserDisplayProps } from "@/types";
 
-const ManageUserPage = () => {
+const ManageUserPage = async ({ params, searchParams }: ServerProps) => {
   return (
-    <div>ManageUserPage</div>
-  )
-}
+    <div>
+      <TableData data={[]} />
+    </div>
+  );
+};
 
-export default ManageUserPage
+export default ManageUserPage;

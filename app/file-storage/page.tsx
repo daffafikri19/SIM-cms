@@ -1,48 +1,36 @@
-"use client"
+"use client";
+
 import React, { useEffect } from "react";
+import { Spin } from "antd";
+import { UseFileManager } from "@/store/use-filemanager";
 
-interface TabFileProps {
-    onFileSelected?: (image: string) => void;
-}
-
-const FileManagerPage: React.FC<TabFileProps> = ({ onFileSelected }) => {
-
-    useEffect(() => {
-        if (typeof window !== "undefined") {
-            import("@flmngr/flmngr-react").then((fileManager) => {
-                fileManager.default.load({
-                    apiKey: `${process.env.NEXT_PUBLIC_FILE_MANAGER_API_KEY}`,
-                    urlFileManager: `${process.env.NEXT_PUBLIC_BACKEND_SERVER_URL}/flmngr`,
-                    urlFiles: `${process.env.NEXT_PUBLIC_BACKEND_SERVER_URL}/files`,
-                });
-
-                openFileManager(fileManager.default);
-            });
-        }
-    }, []);
-
-    const openFileManager = (fileManager: any) => {
-        fileManager.open({
-            isMultiple: false,
-            isMaximized: true,
-            showCloseButton: false,
-            onFileSelected: () => {},
-            showMaximizeButton: false,
-            acceptExtensions: ["png", "jpg", "jpeg", "gif", "webp", "mp4", "svg"],
-            onFinish: (files: any) => {
-                // const image = files[0]?.url || "";
-                // if (image) {
-                //     const imageUrl = new URL(image).pathname;
-                //     console.log("file image url", imageUrl);
-                //     if(onFileSelected) {
-                //         onFileSelected(imageUrl);
-                //     }
-                // }
-            }
+const FileManagerPage = () => {
+  UseFileManager({
+    onFlmngrLoaded() {
+      import("@flmngr/flmngr-react").then((fileManager) => {
+        fileManager.default.open({
+          isMultiple: null as any,
+          isMaximized: true,
+          showCloseButton: false,
+          showMaximizeButton: false,
+          // onFinish: (files: any) => {
+          //   const image = files[0]?.url || "";
+          //   if (image) {
+          //     const imageUrl = new URL(image).pathname;
+          //     console.log("file image url", imageUrl);
+          //     return;
+          //   }
+          // },
         });
-    };
+      });
+    },
+  });
 
-    return null;
+  return (
+    <div className="w-full h-full flex items-center justify-center">
+      <Spin size="large" />
+    </div>
+  );
 };
 
 export default FileManagerPage;

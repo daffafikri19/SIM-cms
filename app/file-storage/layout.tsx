@@ -1,4 +1,5 @@
-import React, { Suspense } from "react";
+"use client"
+import React from "react";
 
 type props = {
   children: React.ReactNode;

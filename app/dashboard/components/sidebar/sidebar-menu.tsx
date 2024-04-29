@@ -14,18 +14,8 @@ import {
 } from "@ant-design/icons";
 import { Menu } from "antd";
 import { usePathname } from "next/navigation";
+import { MenuProps } from "@/types";
 
-type MenuProps = {
-  label: string;
-  key: string;
-  icon: React.JSX.Element;
-  href?: string | undefined;
-  children?: {
-    label: string;
-    key: string;
-    href?: string;
-  }[];
-}[];
 
 const items: MenuProps = [
   {
@@ -40,7 +30,7 @@ const items: MenuProps = [
     icon: <AppstoreOutlined />,
     children: [
       { label: "Daftar Produk", key: "21", href: "/dashboard/product" },
-      { label: "Tambah Produk", key: "22", href: "/dashboard/product/add" },
+      { label: "Tambah Produk", key: "22", href: "/dashboard/product/create" },
       {
         label: "Kategori Produk",
         key: "23",
@@ -57,7 +47,7 @@ const items: MenuProps = [
       {
         label: "Tambah Bahan Baku",
         key: "32",
-        href: "/dashboard/inventory/add",
+        href: "/dashboard/inventory/create",
       },
     ],
   },
@@ -72,9 +62,9 @@ const items: MenuProps = [
     key: "5",
     icon: <FileDoneOutlined />,
     children: [
-      { label: "Bahan Baku", key: "51", href: "/dashboard/report/inventory" },
+      { label: "Bahan Baku", key: "51", href: "/dashboard/report/ingredients" },
       { label: "Keuangan", key: "52", href: "/dashboard/report/finance" },
-      { label: "Penjualan", key: "53", href: "/dashboard/report/sales" },
+      { label: "Stok", key: "53", href: "/dashboard/report/stock" },
     ],
   },
   {
@@ -86,6 +76,11 @@ const items: MenuProps = [
         label: "Daftar Karyawan",
         key: "daftar-karyawan",
         href: "/dashboard/manage-user",
+      },
+      {
+        label: "Tambah Karyawan",
+        key: "tambah-karyawan",
+        href: "/dashboard/manage-user/add-user",
       },
       {
         label: "Perizinan Akses",
@@ -119,7 +114,7 @@ export const SidebarMenu = () => {
       if (item.children) {
         const foundChild = item.children.find(child => child.href === currentPath);
         if (foundChild) {
-          return { selectedKey: foundChild.key, openKey: item.key }; // Kembalikan key dari submenu dan menu utama
+          return { selectedKey: foundChild.key, openKey: item.key };
         }
       }
     }
@@ -129,24 +124,15 @@ export const SidebarMenu = () => {
   const selectedKey = keys?.selectedKey;
   const openKey = keys?.openKey;
 
-  console.log(selectedKey);
-  console.log(openKey);
-
-  const renderMenuItems = (items: any) =>
-    items.map((item: any) => {
-      if (item.children) {
-        return (
-          <Menu.SubMenu key={item.key} icon={item.icon} title={item.label}>
-            {renderMenuItems(item.children)}
-          </Menu.SubMenu>
-        );
-      }
-      return (
-        <Menu.Item key={item.key} icon={item.icon}>
-          <Link href={item.href}>{item.label}</Link>
+  const renderSubMenu = (item: any) => (
+    <Menu.SubMenu key={item.key} icon={item.icon} title={item.label}>
+      {item.children && item.children.map((child : any) => (
+        <Menu.Item key={child.key}>
+          <Link href={child.href}>{child.label}</Link>
         </Menu.Item>
-      );
-    });
+      ))}
+    </Menu.SubMenu>
+  );
 
   return (
     <Menu
@@ -154,7 +140,11 @@ export const SidebarMenu = () => {
       defaultOpenKeys={[openKey!]}
       mode="inline"
     >
-      {renderMenuItems(items)}
+      {items.map(item => (item.children ? renderSubMenu(item) : (
+        <Menu.Item key={item.key} icon={item.icon}>
+          <Link href={item.href || ""}>{item.label}</Link>
+        </Menu.Item>
+      )))}
     </Menu>
   );
 };

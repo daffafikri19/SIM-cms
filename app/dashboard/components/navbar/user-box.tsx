@@ -1,10 +1,12 @@
 "use client";
 import React from "react";
-import { useAuthContext } from "@/store/use-auth";
 import { Tag } from "antd";
 
-export const UserBox = () => {
-  const { name, email } = useAuthContext();
+type props = {
+  name: string | undefined,
+  email: string | undefined
+}
+export const UserBox = ({  name, email } : props) => {
 
   return (
     <div className="flex items-start justify-center flex-col">

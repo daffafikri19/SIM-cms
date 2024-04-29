@@ -5,17 +5,13 @@ import { BrandLogo } from "../dashboard/components/navbar/brand-logo";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/libs/auth";
 import { redirect } from "next/navigation";
+import { ServerProps } from "@/types";
 
 export const metadata: Metadata = {
   title: "Fun Bread Bakery - CMS",
 };
 
-export type serverProps = {
-  params?: { [key: string]: string | string[] | undefined }
-  searchParams?: { [key: string]: string | string[] | undefined }
-}
-
-export default async function HomePage(props: serverProps) {
+export default async function HomePage(props: ServerProps) {
   const session = await getServerSession(authOptions);
   if(session?.user && session?.user.id) {
     redirect("/dashboard")

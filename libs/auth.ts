@@ -1,11 +1,8 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import { prisma } from "./prisma";
-import bcrypt from "bcrypt";
+import axios from "axios";
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
       id: "credentials",
@@ -23,42 +20,27 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Email dan Password tidak boleh kosong");
         }
         try {
-          const existingUser = await prisma.user.findUnique({
-            where: {
-              email: credentials.email,
-            },
-          });
-
-          if (!existingUser) {
-            throw new Error("Akun tidak ditemukan");
-          }
-
-          const matchPassword = await bcrypt.compare(
-            credentials.password,
-            existingUser.password
-          );
-
-          if (!matchPassword) {
-            throw new Error("Password salah");
-          }
-
-          const user = await prisma.user.findUnique({
-            where: {
-              email: existingUser.email,
-            },
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              profile_picture: true,
-              role: true,
-              shift: true
+          const response = await axios.post(process.env.NEXT_PUBLIC_API_URL + "/api/auth/login", {
+            email: credentials?.email,
+            password: credentials?.password
+          }, {
+            headers: {
+              "Content-Type": "application/json"
             }
           });
-          return user;
+          console.log("login response", response.data)
+          const user = response.data.data;
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role.name,
+            profile_picture: user.profile_picture,
+            shift: user.shift,
+          }
         } catch (error: any) {
-          console.log(error)
-          throw new Error(error);
+          console.log("auth error", error)
+          throw new Error(error.response.data.message)
         }
       },
     }),
