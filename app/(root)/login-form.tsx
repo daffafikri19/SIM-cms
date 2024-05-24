@@ -1,52 +1,51 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button, Form, type FormProps, Input, Alert } from "antd";
+import { Button, Form, type FormProps, Input, Alert, message } from "antd";
 import { useLoadingContext } from "@/store/use-loading";
-import { redirect, useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { ServerProps } from "@/types";
+import axios from "axios";
+import { useLocalStorage } from "usehooks-ts";
 
 type FieldType = {
   email?: string;
   password?: string;
 };
 
-export const LoginForm = (props : ServerProps) => {
+export const LoginForm = (props: ServerProps) => {
   const { loading, setLoading } = useLoadingContext();
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
+  const [messageApi, contextHolder] = message.useMessage();
+  const [value, setValue] = useLocalStorage("funBreadToken", null);
 
-  if(props.searchParams?.callbackUrl) {
-    redirect("/")
-  }
-  
   const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
     setLoading(true);
     try {
-      const result = await signIn("credentials", {
-        email: values.email,
-        password: values.password,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        setErrorMessage(result?.error);
-        console.log(result?.error);
-        setLoading(false);
-      } else {
-        console.log(result);
-        return (router.push("/dashboard"));
-      }
-    } catch (error : any) {
-      setErrorMessage(error?.message);
-      console.log("error auth", error);
+      const res = await axios.post(
+        process.env.NEXT_PUBLIC_API_URL + "/api/auth/login",
+        {
+          email: values.email,
+          password: values.password,
+        },
+        {
+          withCredentials: true,
+        }
+      );
+      setValue(res.data.token);
+      messageApi.success(res.data.message);
+      setLoading(false);
+      return router.push('/dashboard')
+    } catch (error: any) {
+      setErrorMessage(error.response.data.message);
       setLoading(false);
     }
   };
 
   return (
     <div className="grid">
+      {contextHolder}
       <Form name="login" layout="vertical" onFinish={onFinish}>
         <div className="grid gap-2">
           <div className="grid gap-1">
@@ -71,7 +70,13 @@ export const LoginForm = (props : ServerProps) => {
           {errorMessage && (
             <Alert message={errorMessage} type="error" showIcon />
           )}
-          <Button type="primary" htmlType="submit" loading={loading} icon disabled={loading}>
+          <Button
+            type="primary"
+            htmlType="submit"
+            loading={loading}
+            icon
+            disabled={loading}
+          >
             Login
           </Button>
         </div>

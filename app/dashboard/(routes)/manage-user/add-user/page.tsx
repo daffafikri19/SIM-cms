@@ -1,12 +1,15 @@
 import React from 'react'
-import { Card } from 'antd'
 import { FormRegister } from './form-register'
-import axios from 'axios'
+import { fetchRoleData } from '@/app/api/mutations/users';
 
 const AddUserPage = async () => {
+
+  const roledata = await fetchRoleData();
+  
+  if(!roledata) return [];
   return (
     <div>
-      <FormRegister roleData={[]} />
+      <FormRegister roleData={roledata} />
     </div>
   )
 }

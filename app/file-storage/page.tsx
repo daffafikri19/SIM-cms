@@ -12,15 +12,7 @@ const FileManagerPage = () => {
           isMultiple: null as any,
           isMaximized: true,
           showCloseButton: false,
-          showMaximizeButton: false,
-          // onFinish: (files: any) => {
-          //   const image = files[0]?.url || "";
-          //   if (image) {
-          //     const imageUrl = new URL(image).pathname;
-          //     console.log("file image url", imageUrl);
-          //     return;
-          //   }
-          // },
+          showMaximizeButton: false
         });
       });
     },

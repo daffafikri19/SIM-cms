@@ -1,9 +1,7 @@
 import { Metadata } from "next";
 
 import { LoginForm } from "./login-form";
-import { BrandLogo } from "../dashboard/components/navbar/brand-logo";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/libs/auth";
+import { BrandLogo } from "../../components/navbar/brand-logo";
 import { redirect } from "next/navigation";
 import { ServerProps } from "@/types";
 
@@ -12,10 +10,9 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage(props: ServerProps) {
-  const session = await getServerSession(authOptions);
-  if(session?.user && session?.user.id) {
-    redirect("/dashboard")
-  }
+  // if(session?.user && session?.user.id) {
+  //   redirect("/dashboard")
+  // }
 
   return (
     <div className="flex items-center justify-center w-full h-full">

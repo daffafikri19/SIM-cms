@@ -1,39 +1,57 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
-import { Layout, Button, theme, Card } from "antd";
-import { DashboardNavbar } from "./components/navbar";
-import { SidebarMenu } from "./components/sidebar/sidebar-menu";
-import { BrandLogo } from "./components/navbar/brand-logo";
+import { Layout, Button, theme, Card, Spin } from "antd";
+import { DashboardNavbar } from "../../components/navbar";
+import { SidebarMenu } from "../../components/sidebar/sidebar-menu";
+import { BrandLogo } from "../../components/navbar/brand-logo";
 import { useSidebar } from "@/store/use-sidebar";
 import { useMediaQuery } from "usehooks-ts";
-import { BreadCrumb } from "./components/breadcrumb";
+import { BreadCrumb } from "../../components/breadcrumb";
+import { authProps } from "@/types";
+import { JwtPayload } from "jwt-decode";
+import { UseAuth } from "@/store/use-auth";
 
 type props = {
   children: React.ReactNode;
+  session?: authProps & JwtPayload;
 };
 
 const { Header, Sider, Content } = Layout;
-
-const DashboardLayoutWrapper = ({ children }: props) => {
+const DashboardLayoutWrapper = ({ children, session }: props) => {
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
- 
+  const [mounted, setMounted] = useState(false);
   const matches = useMediaQuery("(max-width: 800px)");
+  const { setUserid, setName, setEmail, setRole, setProfilePicture, setShift } =
+    UseAuth();
 
   const { collapsed, onExpand, onCollapse } = useSidebar((state) => state);
 
   useEffect(() => {
+    setMounted(true)
     if (matches) {
       onCollapse(!collapsed);
     } else {
       onExpand();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (session) {
+      setUserid(session.userid);
+      setName(session.name);
+      setEmail(session.email);
+      setRole(session.role);
+      setProfilePicture(session.profile_picture || null);
+      setShift(session?.shift || null);
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matches, onCollapse, onExpand]);
 
+  if(!mounted) {
+    return <div className="w-full min-h-screen flex items-center justify-center"><Spin size="large" /></div>
+  }
   return (
     <Layout className="w-full min-h-[100dvh] h-full relative">
       <div
@@ -78,13 +96,13 @@ const DashboardLayoutWrapper = ({ children }: props) => {
         </Header>
 
         <Content
-          className="p-4 h-full overflow-scroll"
+          className="p-1 md:p-2 lg:p-4 h-full overflow-scroll"
           style={{
             borderRadius: borderRadiusLG,
           }}
         >
           <BreadCrumb />
-          <Card className="p-2">{children}</Card>
+          <Card className="p-1 lg:p-2">{children}</Card>
         </Content>
       </Layout>
     </Layout>

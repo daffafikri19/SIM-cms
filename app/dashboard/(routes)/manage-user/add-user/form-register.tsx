@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import { user_role } from "@prisma/client";
 import {
   Button,
   Divider,
@@ -9,21 +8,19 @@ import {
   Input,
   Select,
   Space,
+  Image,
   message,
-  Upload,
-  Typography,
-  Alert,
 } from "antd";
-import { PlusOutlined, InboxOutlined } from "@ant-design/icons";
+import { PlusOutlined, CloseOutlined } from "@ant-design/icons";
 import type { FormProps, InputRef } from "antd";
-import { RegisterProps } from "@/types";
-import { redirect, useRouter } from "next/navigation";
+import { RegisterProps, UserRole } from "@/types";
+import { useRouter } from "next/navigation";
+import { UploadFile } from "@/components/upload-file";
+import { registerUser } from "@/app/api/mutations/users";
 
 type props = {
-  roleData: user_role[];
+  roleData: UserRole[];
 };
-
-const { Dragger } = Upload;
 
 export const FormRegister = ({ roleData }: props) => {
   const router = useRouter();
@@ -34,30 +31,46 @@ export const FormRegister = ({ roleData }: props) => {
     role: "",
     password: "",
     confirmPassword: "",
-    shift: "",
+    shift: null,
   });
-  const [error, setError] = useState<string | undefined>("");
   const roleInputRef = useRef<InputRef>(null);
 
   const handleSubmitForm: FormProps<RegisterProps>["onFinish"] = async (
     values
   ) => {
-    console.log("Success:", values);
-    // await Register({
-    //     name: formdata.name,
-    //     email: formdata.email,
-    //     profile_picture: formdata.profile_picture,
-    //     password: formdata.password,
-    //     confirmPassword: formdata.confirmPassword,
-    //     role: formdata.role,
-    //     shift: formdata.shift
-    // }).then((result : any) => {
-    //     if(result.status === 200) {
-    //         message.success(result.message)
-    //     } else {
-    //         message.error(result.message)
-    //     }
-    // })
+    await registerUser({
+      name: values.name,
+      email: values.email,
+      profile_picture: formdata.profile_picture || null,
+      password: values.password,
+      confirmPassword: values.confirmPassword,
+      role: values.role,
+      shift: values.shift || null,
+    }).then((res) => {
+      if(res?.status === 201) {
+        message.success(res?.message)
+        return router.push("/dashboard/manage-user");
+      } else {
+        message.error(res?.message); 
+      }
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+  };
+
+  const handleFileSelected = (image: string) => {
+    setFormdata((prev) => ({
+      ...prev,
+      profile_picture: image,
+    }));
+  };
+
+  const handleRemoveImage = () => {
+    setFormdata((prev) => ({
+      ...prev,
+      profile_picture: null,
+    }));
   };
 
   return (
@@ -69,12 +82,12 @@ export const FormRegister = ({ roleData }: props) => {
     >
       <Form.Item
         label="Nama Lengkap"
-        name={"nama"}
+        name={"name"}
         rules={[{ required: true, message: "Nama lengkap wajib diisi" }]}
       >
         <Input
           type="text"
-          name="nama"
+          name="name"
           showCount
           value={formdata.name}
           onChange={(e) =>
@@ -112,33 +125,24 @@ export const FormRegister = ({ roleData }: props) => {
       </Form.Item>
 
       <Form.Item label="Foto Profile" className="w-full lg:!w-1/2">
-        <Dragger
-          name="profile_picture"
-          maxCount={1}
-          style={{
-            maxWidth: 150,
-          }}
-          multiple={false}
-          action={"upload"}
-          onChange={(info) => {
-            const { status } = info.file;
-            if (status !== "uploading") {
-              console.log(info.fileList);
-            }
-            if (status === "done") {
-              message.success(`${info.file.name} file uploaded successfully.`);
-            } else if (status === "error") {
-              message.error(`${info.file.name} file upload failed.`);
-            }
-          }}
-        >
-          <p className="ant-upload-drag-icon">
-            <InboxOutlined />
-          </p>
-          <Typography>
-            Klik atau tarik file foto ke dalam area upload
-          </Typography>
-        </Dragger>
+        {formdata.profile_picture ? (
+          <div className="relative">
+            <Image
+              src={`${
+                process.env.NEXT_PUBLIC_API_URL + formdata.profile_picture
+              }`}
+              alt="produk"
+              width={100}
+              height={100}
+            />
+            <CloseOutlined
+              className="cursor-pointer absolute"
+              onClick={handleRemoveImage}
+            />
+          </div>
+        ) : (
+          <UploadFile onFileSelected={handleFileSelected} />
+        )}
       </Form.Item>
 
       <Form.Item
@@ -223,33 +227,34 @@ export const FormRegister = ({ roleData }: props) => {
         />
       </Form.Item>
 
-      <Form.Item
-        label="Shift Kerja"
-        name={"shift"}
-        rules={[{ required: true, message: "Shift harus diisi" }]}
-      >
-        <Select
-          className="w-full lg:!w-1/2"
-          placeholder="Pilih shift kerja"
-          onChange={(e) =>
-            setFormdata((prev) => ({
-              ...prev,
-              shift: e,
-            }))
-          }
-          options={[
-            {
-              label: "Shift 1",
-              value: "Shift 1",
-            },
-            {
-              label: "Shift 2",
-              value: "Shift 2",
-            },
-          ]}
-        />
-      </Form.Item>
-
+      {formdata.role.includes("Owner") ? null : (
+        <Form.Item
+          label="Shift Kerja"
+          name={"shift"}
+          rules={[{ required: true, message: "Shift harus diisi" }]}
+        >
+          <Select
+            className="w-full lg:!w-1/2"
+            placeholder="Pilih shift kerja"
+            onChange={(e) =>
+              setFormdata((prev) => ({
+                ...prev,
+                shift: e,
+              }))
+            }
+            options={[
+              {
+                label: "Shift 1",
+                value: "Shift 1",
+              },
+              {
+                label: "Shift 2",
+                value: "Shift 2",
+              },
+            ]}
+          />
+        </Form.Item>
+      )}
       <Form.Item className="w-full lg:w-1/2">
         <div className="flex items-center w-full space-x-4">
           <Button
@@ -258,6 +263,7 @@ export const FormRegister = ({ roleData }: props) => {
             danger
             type="dashed"
             htmlType="button"
+            onClick={() => router.push("/dashboard/manage-user")}
           >
             Batal
           </Button>

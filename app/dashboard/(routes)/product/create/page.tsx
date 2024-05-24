@@ -1,13 +1,17 @@
-import { Button, Form, Input } from 'antd'
-import React from 'react'
-import { FormCreateProduct } from './form'
+import React from "react";
+import { FormCreateProduct } from "./form";
+import { fetchCategoryProduct } from "@/app/api/mutations/products";
 
-const AddProductPage = () => {
+
+const AddProductPage = async () => {
+  const categoryData = await fetchCategoryProduct();
+
+  if (!categoryData) return [];
   return (
     <div>
-      <FormCreateProduct />
+      <FormCreateProduct categoryData={categoryData} />
     </div>
-  )
-}
+  );
+};
 
-export default AddProductPage
+export default AddProductPage;
