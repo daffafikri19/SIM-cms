@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useTransition } from "react";
 import axios from "axios";
 import { Dropdown, MenuProps, Typography, message } from "antd";
 import {
@@ -15,6 +15,7 @@ import { useLocalStorage, useMediaQuery } from "usehooks-ts";
 
 export const UserBox = () => {
   const router = useRouter();
+  const [pending, startTransition] = useTransition();
   const { userid, name, email, role, shift } = UseAuth();
   const onMobile = useMediaQuery("(max-width: 800px)");
   const [token, setToken] = useLocalStorage("funBreadToken", null);
@@ -72,25 +73,27 @@ export const UserBox = () => {
       router.push("/dashboard/my-account");
     }
     if (key === "2") {
-      try {
-        const res = await axios.post(process.env.NEXT_PUBLIC_API_URL + "/api/auth/logout", { userid: userid }, {
-          withCredentials: true
-        });
-        if (res.status === 200) {
-          localStorage.removeItem('funBreadToken');
-          message.success(res.data.message);
-          return router.push("/");
+      startTransition(async () => {
+        try {
+          const res = await axios.post(process.env.NEXT_PUBLIC_API_URL + "/api/auth/logout", { userid: userid }, {
+            withCredentials: true
+          });
+          if (res.status === 200) {
+            localStorage.removeItem('funBreadToken');
+            message.success(res.data.message);
+            return router.push("/");
+          }
+        } catch (error : any) {
+          message.error(error.response.data.message);
+          return;
         }
-      } catch (error : any) {
-        message.error(error.response.data.message);
-        return;
-      }
+      })
     }
   };
 
   if(onMobile) {
     return (
-      <Dropdown menu={{ items, onClick }}>
+      <Dropdown menu={{ items, onClick, disabled: pending }}>
       <DownOutlined />
     </Dropdown>
     )

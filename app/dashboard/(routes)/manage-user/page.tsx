@@ -6,12 +6,13 @@ import { PlusOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { TableFilter } from "@/components/table-filter";
 import { fetchUserData } from "@/app/api/mutations/users";
+import { parseCookie } from "@/app/api/services/cookies";
 
 const ManageUserPage = async (props: ServerProps) => {
   const pageNumbers = Number(props.searchParams?.page || 1);
   const pageSize = Number(props.searchParams?.limit || 10);
   const searchValue = props.searchParams?.search || null;
-
+  const session = await parseCookie();
   const take = pageSize;
   const skip = (pageNumbers - 1) * take;
 
@@ -41,7 +42,7 @@ const ManageUserPage = async (props: ServerProps) => {
           </Link>
         </div>
       </div>
-      <TableData session={undefined} data={result} />
+      <TableData session={session.hashedToken} data={result} />
     </div>
   );
 };

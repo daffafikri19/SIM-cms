@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { Button, Divider, Form, Input, Select, message } from "antd";
+import { Button, Divider, Form, Input, InputNumber, Select, message } from "antd";
 import type { FormProps } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { IngredientCategoryProps, IngredientProps } from "@/types";
@@ -24,6 +24,7 @@ export const FormCreateIngredient = ({ categoryData }: props) => {
       id: 0,
       name: "",
     },
+    price: 0
   });
   const [pending, startTransition] = useTransition();
 
@@ -34,6 +35,7 @@ export const FormCreateIngredient = ({ categoryData }: props) => {
       await createIngredient({
         name: values.name,
         category: values.category,
+        price: Number(values.price),
       })
         .then((res) => {
           res?.status === 201
@@ -139,6 +141,29 @@ export const FormCreateIngredient = ({ categoryData }: props) => {
             value: data.name,
           }))}
         />
+      </Form.Item>
+
+      <Form.Item
+        label="Harga Bahan Baku"
+        name={"price"}
+        className="w-full lg:!w-1/2"
+      >
+        <div className="flex items-center">
+        <Input
+          name="price"
+          type="number"
+          prefix="Rp."
+          value={formdata.price || 0}
+          onChange={(e) =>
+            setFormdata((prev) => ({
+              ...prev,
+              price: Number(e.target.value),
+            }))
+          }
+          className="flex-1"
+        />
+        <Input name="satuan" type="number" placeholder="satuan" suffix="gram" className="!w-fit" />
+        </div>
       </Form.Item>
 
       <Form.Item className="w-full lg:w-1/2">

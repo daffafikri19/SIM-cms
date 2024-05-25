@@ -24,7 +24,7 @@ const fetchIngredientById = async ({ id }: { id: number }) => {
 const fetchCategoryIngredient = async () => {
   try {
     const res = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + "/api/ingredient/category/all",
+      process.env.NEXT_PUBLIC_API_URL + "/api/ingredients/category/all",
       {
         cache: "no-cache",
       }

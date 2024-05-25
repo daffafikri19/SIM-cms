@@ -37,9 +37,9 @@ const columns: ColumnsType<DataType> = [
     render: (id, record, index) => {
       const handleDeleteCategory = async () => {
         await deleteCategoryProduct({ id }).then((res) => {
-          res.status === 200
-            ? message.success(res.message)
-            : message.error(res.message);
+          res?.status === 200
+            ? message.success(res?.message)
+            : message.error(res?.message);
         });
       };
       return (

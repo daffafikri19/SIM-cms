@@ -1,12 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useTransition } from "react";
-import {
-  Button,
-  Input,
-  Popconfirm,
-  message,
-} from "antd";
+import { Button, Form, Input, Modal, message } from "antd";
 import { EditOutlined } from "@ant-design/icons";
 import {
   editCategoryProduct,
@@ -18,26 +13,22 @@ type props = {
 };
 
 export const EditModal = ({ id }: props) => {
-  const [open, setOpen] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
   const [name, setName] = useState("");
   const [pending, startTransition] = useTransition();
 
-  useEffect(() => {
-    const getCategoryId = async () => {
-      await fetchCategoryProductId(id)
-        .then((res) => {
-          const data = res.data;
-          setName(data.name);
-        })
-        .catch((err) => {
-          if (err.message) {
-            message.error(err.message);
-          }
-        });
-    };
-
-    getCategoryId();
-  }, [id]);
+  const getCategoryId = async () => {
+    await fetchCategoryProductId(id)
+      .then((res) => {
+        const data = res.data;
+        setName(data.name);
+      })
+      .catch((err) => {
+        if (err.message) {
+          message.error(err.message);
+        }
+      });
+  };
 
   const handleOk = async () => {
     if (!name || name.length <= 3) {
@@ -50,47 +41,58 @@ export const EditModal = ({ id }: props) => {
         name: name,
       })
         .then((res) => {
-          res?.status === 201
+          res?.status === 200
             ? message.success(res?.message)
             : message.error(res?.message);
         })
         .then(() => {
           setName("");
-          setOpen(false);
+          setOpenModal(false);
         });
     });
   };
 
   return (
     <div className="w-full">
-      <Popconfirm
-        title="Nama Kategori"
-        description={
-          <Input
-            className="!w-full !min-w-[500px]"
-            type="text"
-            value={name}
-            defaultValue={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            placeholder="masukan nama kategori"
-            showCount
-            maxLength={50}
-          />
-        }
-        open={open}
-        placement="bottomRight"
-        okText="Simpan"
-        cancelText="Batal"
-        overlayInnerStyle={{ width: "100%" }}
-        onConfirm={handleOk}
-        onCancel={() => setOpen(false)}
-        disabled={pending}
+      <Button
+        icon={<EditOutlined />}
+        type="dashed"
+        size="small"
+        onClick={() => getCategoryId().then(() => setOpenModal(true))}
       >
-        <Button icon={<EditOutlined />} type="dashed" size="small">
-          edit
-        </Button>
-      </Popconfirm>
+        edit
+      </Button>
+      <Modal
+        onCancel={() => setOpenModal(false)}
+        onOk={handleOk}
+        open={openModal}
+        okText="Simpan"
+        okButtonProps={{ "htmlType": 'submit' }}
+        cancelText="batal"
+        confirmLoading={pending}
+      >
+        <Form className="mt-10" layout="vertical">
+          <Form.Item
+            label="Nama Kategori"
+            name={"name"}
+            rules={[
+              { required: true, message: "Nama kategori tidak boleh kosong" },
+            ]}
+          >
+            <Input
+              className=""
+              type="text"
+              value={name}
+              defaultValue={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              placeholder="masukan nama kategori"
+              showCount
+              maxLength={50}
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

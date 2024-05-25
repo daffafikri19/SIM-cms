@@ -23,11 +23,11 @@ export type UserProps = {
   name: string;
   email: string;
   profile_picture: string | null;
-  role: string & UserRole;
+  role: UserRole;
   shift: string | null;
   created_at?: string;
   updated_at?: string;
-}
+};
 
 export type MenuProps = {
   label: string;
@@ -70,6 +70,7 @@ export type CategoryProps = {
 export type IngredientProps = {
   name: string;
   category: IngredientCategoryProps;
+  price: number | null;
 };
 
 export type IngredientCategoryProps = {
@@ -91,48 +92,44 @@ export type UserDisplayProps = {
 export type UserRole = {
   id: number;
   name: string;
-}
+};
 
 export type ReportStockProps = {
   id: string;
   report_date: string;
   grand_total: number;
-  report_shift_1: ShiftStockProps | null | undefined
-  report_shift_2: ShiftStockProps | null | undefined
-}
-
-export type ShiftStockProps = {
-  id: number;
-  report_id: string;
-  user_id: string;
-  values: any;
-  reporter: UserProps | null
-}
-
-export type ReportShift1Props = {
-  id: number;
-  reporter: UserProps;
-  stock_before: number | null;
-  afternoon_stock: number | null;
-  order: number;
-  withdrawal: number;
-  total_price: number;
-}
+  report_shift_1: {
+    id: number;
+    report_id: string;
+    user_id: string;
+    values: DetailReportValueShift1Props;
+    reporter: UserProps | null;
+  } | null;
+  report_shift_2: {
+    id: number;
+    report_id: string;
+    user_id: string;
+    values: DetailReportValueShift2Props;
+    reporter: UserProps | null;
+  } | null;
+};
 
 export type DetailReportValueShift1Props = {
   id: number;
   product_name: string;
-  stock_before: number,
+  stock_before: number;
   afternoon_stock: number;
   order: number;
   withdrawal: number;
+  total_sold: number;
   total_price: number;
-}
+};
 
-export type ReportShift2Props = {
+export type DetailReportValueShift2Props = {
   id: number;
-  reporter: UserProps;
-  morning_stock: number | null;
-  afternoon_stock: number | null;
+  product_name: string;
+  stock_before: number;
+  night_stock: number;
+  total_sold: number;
   total_price: number;
-}
+};

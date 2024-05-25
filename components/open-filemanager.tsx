@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Button } from "antd";
-import { useLoadingContext } from "../store/use-loading";
+import { useLoadingContext } from "@/store/use-loading";
 
 type Props = {
   onFileSelected: (image: string) => void;

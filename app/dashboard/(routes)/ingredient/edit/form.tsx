@@ -10,7 +10,7 @@ import { updateIngredient } from "@/app/api/mutations/ingredients";
 type props = {
   ingredient_id: number;
   dataIngredient: IngredientProps;
-  categoryIngredient: IngredientCategoryProps[]
+  categoryIngredient: IngredientCategoryProps[];
 };
 
 export const FormEditIngredient = ({
@@ -30,6 +30,7 @@ export const FormEditIngredient = ({
         id: ingredient_id,
         name: values.name,
         category: values.category,
+        price: Number(values.price),
       })
         .then((res) => {
           res?.status === 200
@@ -37,9 +38,10 @@ export const FormEditIngredient = ({
             : message.error(res?.message);
           return router.push("/dashboard/ingredient");
         })
-        .catch((err) => {
-          if(err.response) {
-            
+        .catch((error: any) => {
+          if (error.response) {
+            message.error(error.response.data.message);
+            console.log(error.response.data.errorMessage);
           }
         });
     });
@@ -54,6 +56,7 @@ export const FormEditIngredient = ({
       initialValues={{
         name: formdata.name,
         category: formdata.category.name,
+        price: formdata.price
       }}
     >
       <Form.Item
@@ -95,6 +98,25 @@ export const FormEditIngredient = ({
             label: data.name,
             value: data.name,
           }))}
+        />
+      </Form.Item>
+
+      <Form.Item
+        label="Harga Bahan Baku"
+        name={"price"}
+      >
+        <Input
+          name="price"
+          type="number"
+          prefix="Rp."
+          value={formdata.price || 0}
+          onChange={(e) =>
+            setFormdata((prev) => ({
+              ...prev,
+              price: Number(e.target.value),
+            }))
+          }
+          className="w-full lg:!w-1/2"
         />
       </Form.Item>
 

@@ -1,10 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useTransition } from "react";
 import { Button, Form, type FormProps, Input, Alert, message } from "antd";
-import { useLoadingContext } from "@/store/use-loading";
 import { useRouter } from "next/navigation";
-import { ServerProps } from "@/types";
 import axios from "axios";
 import { useLocalStorage } from "usehooks-ts";
 
@@ -13,39 +11,35 @@ type FieldType = {
   password?: string;
 };
 
-export const LoginForm = (props: ServerProps) => {
-  const { loading, setLoading } = useLoadingContext();
+export const LoginForm = () => {
+  const [pending, startTransition] = useTransition();
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
-  const [messageApi, contextHolder] = message.useMessage();
   const [value, setValue] = useLocalStorage("funBreadToken", null);
 
   const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
-    setLoading(true);
-    try {
-      const res = await axios.post(
-        process.env.NEXT_PUBLIC_API_URL + "/api/auth/login",
-        {
-          email: values.email,
-          password: values.password,
-        },
-        {
-          withCredentials: true,
-        }
-      );
-      setValue(res.data.token);
-      messageApi.success(res.data.message);
-      setLoading(false);
-      return router.push('/dashboard')
-    } catch (error: any) {
-      setErrorMessage(error.response.data.message);
-      setLoading(false);
-    }
+    startTransition(async () => {
+      try {
+        const res = await axios.post(
+          process.env.NEXT_PUBLIC_API_URL + "/api/auth/login",
+          {
+            email: values.email,
+            password: values.password,
+          },
+          {
+            withCredentials: true,
+          }
+        );
+        setValue(res.data.token);
+        window.location.href = '/dashboard';
+      } catch (error: any) {
+        setErrorMessage(error.response.data.message);
+      }
+    })
   };
 
   return (
     <div className="grid">
-      {contextHolder}
       <Form name="login" layout="vertical" onFinish={onFinish}>
         <div className="grid gap-2">
           <div className="grid gap-1">
@@ -73,9 +67,9 @@ export const LoginForm = (props: ServerProps) => {
           <Button
             type="primary"
             htmlType="submit"
-            loading={loading}
+            loading={pending}
             icon
-            disabled={loading}
+            disabled={pending}
           >
             Login
           </Button>

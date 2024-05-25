@@ -6,15 +6,10 @@ import { parseCookie } from "../../services/cookies";
 import axios from "axios";
 
 export const fetchCategoryIngredients = async () => {
-  const { token } = await parseCookie()
   try {
-    const res = await axios.get(process.env.NEXT_PUBLIC_API_URL + "/api/ingredients/category/all", {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
+    const res = await axios.get(process.env.NEXT_PUBLIC_API_URL + "/api/ingredients/category/all");
     
-    return res.data;
+    return res.data.data;
   } catch (error: any) {
     if(error.response) {
       return {
@@ -25,8 +20,7 @@ export const fetchCategoryIngredients = async () => {
   }
 };
 
-export const createIngredient = async ({ name, category }: IngredientProps) => {
-  const { token } = await parseCookie()
+export const createIngredient = async ({ name, category, price }: IngredientProps) => {
 
   try {
     const res = await axios.post(
@@ -34,11 +28,7 @@ export const createIngredient = async ({ name, category }: IngredientProps) => {
       {
         name,
         category,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        price
       }
     );
     revalidatePath("/dashboard/ingredient");
@@ -57,12 +47,13 @@ export const createIngredient = async ({ name, category }: IngredientProps) => {
   }
 };
 
+
 export const updateIngredient = async ({
   id,
   name,
   category,
+  price
 }: { id: number } & IngredientProps) => {
-  const { token } = await parseCookie()
   try {
     const res = await axios.patch(
       process.env.NEXT_PUBLIC_API_URL + `/api/ingredient/update/${id}`,
@@ -70,11 +61,7 @@ export const updateIngredient = async ({
         id,
         name,
         category,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        price
       }
     );
     revalidatePath("/dashboard/ingredient");
@@ -94,17 +81,11 @@ export const updateIngredient = async ({
 };
 
 export const deleteIngredient = async ({ id }: { id: number }) => {
-  const { token } = await parseCookie()
   try {
     const res = await axios.post(
       process.env.NEXT_PUBLIC_API_URL + `/api/ingredient/delete/${id}`,
       {
         id: id,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
       }
     );
     revalidatePath("/dashboard/ingredient");
@@ -125,17 +106,11 @@ export const deleteIngredient = async ({ id }: { id: number }) => {
 };
 
 export const createCategoryIngredient = async ({ name }: { name: string }) => {
-  const { token } = await parseCookie()
   try {
     const res = await axios.post(
       process.env.NEXT_PUBLIC_API_URL + "/api/ingredient/category/create",
       {
         name: name,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
       }
     );
 
@@ -155,25 +130,59 @@ export const createCategoryIngredient = async ({ name }: { name: string }) => {
   }
 };
 
-export const editCategoryIngredient = () => {};
+export const fetchCategoryIngredientId = async (id: number) => {
+  try {
+    const res = await axios.post(process.env.NEXT_PUBLIC_API_URL + `/api/ingredient/category/get/${id}`, {
+      id: id
+    });
+    revalidatePath("/dashboard/ingredient");
+    return res.data
+  } catch (error: any) {
+    if (error.response) {
+      return {
+        message: error.response.data.message,
+        status: 500,
+      };
+    }
+  }
+}
+
+export const editCategoryIngredient = async ({ id, name } : { id: number, name: string }) => {
+  try {
+    const res = await axios.patch(process.env.NEXT_PUBLIC_API_URL + `/api/ingredient/category/update/${id}`, {
+      id,
+      name
+    });
+    revalidatePath("/dashboard/ingredient/category");
+    revalidatePath("/dashboard/ingredient");
+    return {
+      message: res.data.message,
+      status: 200
+    }
+  } catch (error : any) {
+    if (error.response) {
+      return {
+        message: error.response.data.message,
+        status: 500,
+      };
+    }
+  }
+};
 
 export const deleteCategoryIngredient = async ({ id }: { id: number }) => {
-  const { token } = await parseCookie()
   try {
     const res = await axios.post(
       process.env.NEXT_PUBLIC_API_URL + `/api/ingredient/category/delete/${id}`,
       {
         id,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
       }
     );
     revalidatePath("/dashboard/ingredient/category");
     revalidatePath("/dashboard/ingredient");
-    return res.data;
+    return {
+      message: res.data.message,
+      status: 200
+    }
   } catch (error: any) {
     if (error.response) {
       return {

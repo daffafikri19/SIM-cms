@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { UserDisplayProps, UserProps } from "@/types";
+import { UserDisplayProps, UserProps, authProps } from "@/types";
 import {
   Avatar,
   Button,
@@ -18,7 +18,7 @@ import { deleteUserAccount } from "@/app/api/mutations/users";
 
 type TabelUserProps = {
   data: UserDisplayProps[];
-  session: UserProps | undefined;
+  session: authProps;
 };
 
 type ColumnsType<T> = TableProps<T>["columns"];

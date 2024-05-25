@@ -1,15 +1,15 @@
 import React from "react";
-import { Button } from "antd";
 import { TableData } from "./table-data";
-import { PlusOutlined } from "@ant-design/icons";
-import Link from "next/link";
-import { ServerProps } from "@/types";
+import { ReportStockProps, ServerProps } from "@/types";
 import { fetchReportStock } from "@/app/api/mutations/report";
 import { TableFilter } from "@/components/table-filter";
 import { CustomPagination } from "@/components/pagination";
+import { parseCookie } from "@/app/api/services/cookies";
+import { redirect } from "next/navigation";
+import { ModalDate } from "./create/modal-date";
+import { format } from "date-fns";
 
 const ReportStockPage = async (props: ServerProps) => {
-
   const pageNumbers = Number(props.searchParams?.page || 1);
   const pageSize = Number(props.searchParams?.limit || 10);
   const searchValue = props.searchParams?.search || null;
@@ -26,6 +26,19 @@ const ReportStockPage = async (props: ServerProps) => {
   });
   const reports = dataReport.result;
   const metadata = dataReport.metadata;
+  const session = await parseCookie();
+  if (!session.hashedToken.userid) {
+    redirect("/");
+  }
+
+  const today = format(new Date(Date.now()), "yyyy-MM-dd");
+
+  const todayReportShift1 = reports.some((data: any) => data.report_date.includes(today));
+  const ReportShift1 = reports.some((data: ReportStockProps) => data.report_shift_1 && data.report_date.includes(today));
+
+  // const hasReportShift1 = todayReportShift1 && ReportShift1;
+  
+  console.log(reports);
 
   return (
     <div className="w-full space-y-4">
@@ -36,15 +49,27 @@ const ReportStockPage = async (props: ServerProps) => {
             enableDatePicker
           />
         </div>
-        <div>
-          <Link href={"/dashboard/report/stock/create"}>
-            <Button type="primary" icon={<PlusOutlined />}>
-              Buat Laporan
-            </Button>
-          </Link>
-        </div>
+
+        {session.hashedToken.shift === "Shift 1" && (
+            <ModalDate
+              session={{
+                name: session.hashedToken.name,
+                shift: session.hashedToken.shift,
+              }}
+            />
+          )}
+
+{/*           
+        {hasReportShift1 ? (
+          <></>
+        ) : (
+          <>
+          
+          </>
+        )} */}
+        
       </div>
-      <TableData data={reports} />
+      <TableData data={reports} session={session.hashedToken} />
       <div className="w-full flex items-center justify-end mt-5">
         <CustomPagination page={pageNumbers} {...metadata} limit={pageSize} />
       </div>

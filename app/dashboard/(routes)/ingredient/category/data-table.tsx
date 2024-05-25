@@ -6,6 +6,7 @@ import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import type { TableProps } from "antd";
 import Link from "next/link";
 import { deleteCategoryIngredient } from "@/app/api/mutations/ingredients";
+import { EditModal } from "./edit-modal";
 
 type ColumnsType<T> = TableProps<T>["columns"];
 type TableRowSelection<T> = TableProps<T>["rowSelection"];
@@ -38,18 +39,14 @@ const columns: ColumnsType<DataType> = [
     render: (id, record, index) => {
       const handleDeleteCategory = async () => {
         await deleteCategoryIngredient({ id }).then((res) => {
-          res.status === 200
-            ? message.success(res.message)
-            : message.error(res.message);
+          res?.status === 200
+            ? message.success(res?.message)
+            : message.error(res?.message);
         });
       };
       return (
         <div className="flex w-full items-center justify-center gap-1">
-          <Link href={`/dashboard/ingredient/edit?id=${id}`}>
-            <Button size="small" type="dashed" icon={<EditOutlined />}>
-              Edit
-            </Button>
-          </Link>
+          <EditModal id={id} />
           <Popconfirm
             placement="topLeft"
             title="Hapus kategori"

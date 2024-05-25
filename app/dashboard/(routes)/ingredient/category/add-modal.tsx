@@ -14,7 +14,7 @@ import { PlusOutlined } from "@ant-design/icons";
 import { createCategoryIngredient } from "@/app/api/mutations/ingredients";
 
 export const AddModal = () => {
-  const [open, setOpen] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
   const [name, setName] = useState("");
   const [pending, startTransition] = useTransition();
 
@@ -34,47 +34,55 @@ export const AddModal = () => {
         })
         .then(() => {
           setName("");
-          setOpen(false);
+          setOpenModal(false);
         });
     });
   };
 
   return (
     <div className="w-full">
-      <Popconfirm
-        title="Nama Kategori"
-        description={
-          <Input
-            className="!w-full !min-w-[500px]"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            placeholder="masukan nama kategori"
-            showCount
-            maxLength={50}
-          />
-        }
-        open={open}
-        placement="bottomRight"
-        okText="Simpan"
-        cancelText="Batal"
-        overlayInnerStyle={{ width: "100%" }}
-        onConfirm={handleOk}
-        onCancel={() => setOpen(false)}
+      <Button
+        className="float-end mb-5"
+        type="primary"
+        onClick={() => setOpenModal(true)}
+        icon={<PlusOutlined />}
+        loading={pending}
         disabled={pending}
       >
-        <Button
-          className="float-end mb-5"
-          type="primary"
-          onClick={() => setOpen(true)}
-          icon={<PlusOutlined />}
-          loading={pending}
-          disabled={pending}
-        >
-          Tambah Kategori
-        </Button>
-      </Popconfirm>
+        Tambah Kategori
+      </Button>
+
+      <Modal
+        onCancel={() => setOpenModal(false)}
+        onOk={handleOk}
+        open={openModal}
+        okText="Simpan"
+        okButtonProps={{ htmlType: "submit" }}
+        cancelText="batal"
+        confirmLoading={pending}
+      >
+        <Form className="mt-10" layout="vertical">
+          <Form.Item
+            label="Nama Kategori"
+            name={"name"}
+            rules={[
+              { required: true, message: "Nama kategori tidak boleh kosong" },
+            ]}
+          >
+            <Input
+              className=""
+              type="text"
+              value={name}
+              defaultValue={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              placeholder="masukan nama kategori"
+              showCount
+              maxLength={50}
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

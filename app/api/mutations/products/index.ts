@@ -139,13 +139,12 @@ export const deleteProduct = async ({ id }: { id: string }) => {
 
 export const fetchProductForReport = async () => {
   try {
-    revalidatePath('/dashboard/product');
-    revalidatePath('/dashboard/report/stock');
-    revalidatePath('/dashboard/report/stock/create');
     const res = await fetch(process.env.NEXT_PUBLIC_API_URL + "/api/product/all/report", {
       cache: 'no-cache'
     })
     revalidatePath("/dashboard/product");
+    revalidatePath('/dashboard/report/stock/create');
+    revalidatePath('/dashboard/report/stock');
     const data = await res.json();
     return data;
   } catch (error: any) {
@@ -158,9 +157,25 @@ export const fetchProductForReport = async () => {
   }
 }
 
-export const fetchReportShiftYesterday = async () => {
+export const fetchReportShiftYesterday = async ({ date } : { date: string }) => {
   try {
-    const res = await fetch(process.env.NEXT_PUBLIC_API_URL + "/api/report/stock/yesterday", {
+    const res = await axios.post(process.env.NEXT_PUBLIC_API_URL + "/api/report/stock/yesterday", {
+      date: date
+    });
+    return res.data.data;
+  } catch (error: any) {
+    if (error.response) {
+      return {
+        message: error.response.data.message,
+        status: 500,
+      };
+    }
+  }
+}
+
+export const fetchReportShiftToday = async () => {
+  try {
+    const res = await fetch(process.env.NEXT_PUBLIC_API_URL + "/api/report/stock/today", {
       cache: 'no-cache'
     });
     const data = await res.json();
@@ -252,7 +267,7 @@ export const editCategoryProduct = async ({ id, name }: { id: number, name: stri
     revalidatePath("/dashboard/product/category");
     return {
       message: res.data.message,
-      status: res.status,
+      status: 200,
     };
   } catch (error: any) {
     if (error.response) {
@@ -274,7 +289,10 @@ export const deleteCategoryProduct = async ({ id }: { id: number }) => {
     );
     revalidatePath("/dashboard/product/category");
     revalidatePath("/dashboard/product");
-    return res.data;
+    return {
+      message: res.data.message,
+      status: 200
+    }
   } catch (error: any) {
     if (error.response) {
       return {

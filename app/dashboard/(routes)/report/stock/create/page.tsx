@@ -1,23 +1,34 @@
 import React from "react";
-import { fetchProductForReport, fetchReportShiftYesterday } from "@/app/api/mutations/products";
+import {
+  fetchProductForReport,
+  fetchReportShiftToday,
+  fetchReportShiftYesterday,
+} from "@/app/api/mutations/products";
 import { parseCookie } from "@/app/api/services/cookies";
 import { TableReportShift1 } from "./table-shift1";
 import { TableReportShift2 } from "./table-shift2";
 
 const CreateReportStockPage = async () => {
-  const currentShift = 'shift 1';
-
   const { data: dataProducts } = await fetchProductForReport();
-  const dataReportYesterday = await fetchReportShiftYesterday();
+  const dataReportToday = await fetchReportShiftToday();
   const session = await parseCookie();
   if (!dataProducts) return [];
-  
-  if (currentShift === "shift 1") {
+
+  if (session.hashedToken.shift === "Shift 1") {
     return (
-      <TableReportShift1 session={session.hashedToken} dataProduct={dataProducts} reportYesterday={dataReportYesterday} />
+      <TableReportShift1
+        session={session.hashedToken}
+        dataProduct={dataProducts}
+      />
     );
-  } else if (currentShift === "shift 2") {
-    return <TableReportShift2 session={session.hashedToken} dataProduct={dataProducts} reportYesterday={dataReportYesterday} />;
+  } else if (session.hashedToken.shift === "Shift 2") {
+    return (
+      <TableReportShift2
+        session={session.hashedToken}
+        dataProduct={dataProducts}
+        reportShiftToday={dataReportToday}
+      />
+    );
   }
 };
 

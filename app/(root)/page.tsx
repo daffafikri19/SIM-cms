@@ -2,7 +2,6 @@ import { Metadata } from "next";
 
 import { LoginForm } from "./login-form";
 import { BrandLogo } from "../../components/navbar/brand-logo";
-import { redirect } from "next/navigation";
 import { ServerProps } from "@/types";
 
 export const metadata: Metadata = {
@@ -10,10 +9,6 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage(props: ServerProps) {
-  // if(session?.user && session?.user.id) {
-  //   redirect("/dashboard")
-  // }
-
   return (
     <div className="flex items-center justify-center w-full h-full">
       <div className="container relative grid h-[100dvh] full flex-col items-center justify-center md:grid">
@@ -31,7 +26,7 @@ export default async function HomePage(props: ServerProps) {
                 Masukan email dan password untuk akses CMS
               </p>
             </div>
-            <LoginForm {...props} />
+            <LoginForm />
           </div>
         </div>
         </div>

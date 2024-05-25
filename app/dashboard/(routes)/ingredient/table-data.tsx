@@ -6,6 +6,7 @@ import { Button, Popconfirm, Table, message } from "antd";
 import type { TableProps } from "antd";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import { deleteIngredient } from "@/app/api/mutations/ingredients";
+import { formatRupiah } from "@/libs/formatter";
 
 type ColumnsType<T> = TableProps<T>["columns"];
 type TableRowSelection<T> = TableProps<T>["rowSelection"];
@@ -38,6 +39,14 @@ const columns: ColumnsType<DataType> = [
     align: "center",
     render: (value, record, index) => {
       return <p>{value.name}</p>;
+    },
+  },
+  {
+    title: "Harga",
+    dataIndex: "price",
+    align: "center",
+    render: (value, record, index) => {
+      return <p>{formatRupiah(value)}</p>;
     },
   },
   {

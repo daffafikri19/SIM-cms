@@ -36,7 +36,7 @@ export const FormEdit = ({ userData, roleData }: props) => {
             name: values.name,
             email: values.email,
             profile_picture: formdata.profile_picture,
-            role: formdata.role.name as any,
+            role: formdata.role,
             shift: formdata.shift
         }).then((res) => {
             if(res?.status === 200) {
