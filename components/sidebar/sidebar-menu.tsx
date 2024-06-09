@@ -62,7 +62,7 @@ const items: MenuProps = [
     icon: <FileDoneOutlined />,
     children: [
       { label: "Bahan Baku", key: "51", href: "/dashboard/report/ingredient" },
-      { label: "Keuangan", key: "52", href: "/dashboard/report/finance" },
+      { label: "Keuangan", key: "52", href: "/dashboard/report/sales" },
       { label: "Stok", key: "53", href: "/dashboard/report/stock" },
     ],
   },

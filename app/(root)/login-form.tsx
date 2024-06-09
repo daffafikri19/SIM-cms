@@ -18,8 +18,8 @@ export const LoginForm = () => {
   const [value, setValue] = useLocalStorage("funBreadToken", null);
 
   const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
-    startTransition(async () => {
-      try {
+    try {
+      startTransition(async () => {
         const res = await axios.post(
           process.env.NEXT_PUBLIC_API_URL + "/api/auth/login",
           {
@@ -32,10 +32,10 @@ export const LoginForm = () => {
         );
         setValue(res.data.token);
         window.location.href = '/dashboard';
-      } catch (error: any) {
-        setErrorMessage(error.response.data.message);
-      }
-    })
+      })
+    } catch (error: any) {
+      setErrorMessage(error.response.data.message);
+    }
   };
 
   return (

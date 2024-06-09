@@ -1,10 +1,15 @@
 "use client";
 
-import React, { useEffect, useState, useTransition } from "react";
+import React, { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { Button, Form, InputNumber, Table, Typography, message } from "antd";
 import type { TableProps } from "antd";
 import { SwapRightOutlined } from "@ant-design/icons";
-import { formatDateLaporan, formatRupiah } from "@/libs/formatter";
+import {
+  formatDateLaporan,
+  formatInputNumber,
+  formatRupiah,
+  parserInputNumber,
+} from "@/libs/formatter";
 import { useMediaQuery } from "usehooks-ts";
 import { ReportStockProps, authProps } from "@/types";
 import { JwtPayload } from "jwt-decode";
@@ -42,6 +47,8 @@ export const TableReportShift1 = ({
   const [messageApi, contextHolder] = message.useMessage();
   const { currentDate } = useCurrentDate();
   const [initialValue, setInitialValue] = useState<any>();
+  const [grandTotal, setGrandTotal] = useState(0);
+  const grandTotalRef = useRef(0);
 
   useEffect(() => {
     const getDataReportYesterday = async () => {
@@ -58,17 +65,26 @@ export const TableReportShift1 = ({
           };
         });
 
-        setInitialValue(initialValues)
+        setInitialValue(initialValues);
+        form.setFieldsValue(initialValues);
       }
     };
 
     getDataReportYesterday();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentDate]);
 
-  console.log(initialValue)
-
-  console.log(currentDate);
+  
+  const updateGrandTotal = useCallback(
+    (total_price : any) => {
+      setGrandTotal(prev => {
+        const newGrandTotal = prev - grandTotalRef.current + total_price;
+        grandTotalRef.current = newGrandTotal;
+        return newGrandTotal;
+      });
+    },
+    [setGrandTotal]
+  );
 
   const onFinish = async (values: any) => {
     startTransition(async () => {
@@ -76,7 +92,7 @@ export const TableReportShift1 = ({
         reporter: session.name,
         values: values,
         grand_total: 0,
-        date: currentDate?.toString() || "",
+        date: currentDate?.toISOString(),
       }).then((res) => {
         if (res?.status === 201) {
           messageApi.success(res.message);
@@ -144,10 +160,35 @@ export const TableReportShift1 = ({
         return (
           <Form.Item
             name={[record.name, "afternoon_stock"]}
-            initialValue={record.afternoon_stock}
             rules={[{ required: true, message: "Harap isi stok sore" }]}
+            dependencies={[record.name, "stock_before", "order", "withdrawal"]}
           >
-            <InputNumber min={0} />
+            <InputNumber
+              min={0}
+              onChange={() => {
+                const stock_before = form.getFieldValue([
+                  record.name,
+                  "stock_before",
+                ]);
+                const order = form.getFieldValue([record.name, "order"]);
+                const afternoon_stock = form.getFieldValue([
+                  record.name,
+                  "afternoon_stock",
+                ]);
+                const withdrawal = form.getFieldValue([
+                  record.name,
+                  "withdrawal",
+                ]);
+                const total_sold =
+                  stock_before + order - (afternoon_stock + withdrawal);
+                form.setFieldsValue({
+                  [record.name]: {
+                    total_sold: total_sold,
+                    total_price: total_sold * Number(record.price),
+                  },
+                });
+              }}
+            />
           </Form.Item>
         );
       },
@@ -160,10 +201,40 @@ export const TableReportShift1 = ({
         return (
           <Form.Item
             name={[record.name, "order"]}
-            initialValue={record.order}
             rules={[{ required: true, message: "Harap isi order" }]}
+            dependencies={[
+              record.name,
+              "stock_before",
+              "afternoon_stock",
+              "withdrawal",
+            ]}
           >
-            <InputNumber min={0} />
+            <InputNumber
+              min={0}
+              onChange={() => {
+                const stock_before = form.getFieldValue([
+                  record.name,
+                  "stock_before",
+                ]);
+                const order = form.getFieldValue([record.name, "order"]);
+                const afternoon_stock = form.getFieldValue([
+                  record.name,
+                  "afternoon_stock",
+                ]);
+                const withdrawal = form.getFieldValue([
+                  record.name,
+                  "withdrawal",
+                ]);
+                const total_sold =
+                  stock_before + order - (afternoon_stock + withdrawal);
+                form.setFieldsValue({
+                  [record.name]: {
+                    total_sold: total_sold,
+                    total_price: total_sold * Number(record.price),
+                  },
+                });
+              }}
+            />
           </Form.Item>
         );
       },
@@ -176,26 +247,82 @@ export const TableReportShift1 = ({
         return (
           <Form.Item
             name={[record.name, "withdrawal"]}
-            initialValue={record.withdrawal}
             rules={[{ required: true, message: "Harap isi penarikan" }]}
+            dependencies={[
+              record.name,
+              "stock_before",
+              "order",
+              "afternoon_stock",
+            ]}
           >
-            <InputNumber min={0} />
+            <InputNumber
+              min={0}
+              onChange={() => {
+                const stock_before = form.getFieldValue([
+                  record.name,
+                  "stock_before",
+                ]);
+                const order = form.getFieldValue([record.name, "order"]);
+                const afternoon_stock = form.getFieldValue([
+                  record.name,
+                  "afternoon_stock",
+                ]);
+                const withdrawal = form.getFieldValue([
+                  record.name,
+                  "withdrawal",
+                ]);
+                const total_sold =
+                  stock_before + order - (afternoon_stock + withdrawal);
+                form.setFieldsValue({
+                  [record.name]: {
+                    total_sold: total_sold,
+                    total_price: total_sold * Number(record.price),
+                  },
+                });
+              }}
+            />
           </Form.Item>
         );
       },
     },
     {
-      title: "Jumlah Terjual",
+      title: "Total Terjual",
       dataIndex: "total_sold",
       align: "center",
       render: (value, record, index) => {
         return (
-          <Form.Item
-            name={[record.name, "total_sold"]}
-            initialValue={record.total_sold}
-            rules={[{ required: true, message: "Harap isi total terjual" }]}
-          >
-            <InputNumber min={0} />
+          <Form.Item shouldUpdate className="!mb-0">
+            {() => {
+              const stock_before = form.getFieldValue([
+                record.name,
+                "stock_before",
+              ]);
+              const order = form.getFieldValue([record.name, "order"]);
+              const afternoon_stock = form.getFieldValue([
+                record.name,
+                "afternoon_stock",
+              ]);
+              const withdrawal = form.getFieldValue([
+                record.name,
+                "withdrawal",
+              ]);
+
+              const total_sold =
+                stock_before + order - (afternoon_stock + withdrawal);
+
+              return (
+                <Form.Item
+                  name={[record.name, "total_sold"]}
+                  initialValue={total_sold}
+                  className="!mb-0"
+                  rules={[
+                    { required: true, message: "Harap isi total terjual" },
+                  ]}
+                >
+                  <InputNumber min={0} value={total_sold} readOnly />
+                </Form.Item>
+              );
+            }}
           </Form.Item>
         );
       },
@@ -206,12 +333,35 @@ export const TableReportShift1 = ({
       align: "center",
       render: (value, record, index) => {
         return (
-          <Form.Item
-            name={[record.name, "total_price"]}
-            initialValue={record.total_price}
-            rules={[{ required: true, message: "Harap isi total harga" }]}
-          >
-            <InputNumber min={0} />
+          <Form.Item shouldUpdate className="!mb-0">
+            {() => {
+              const total_sold = form.getFieldValue([
+                record.name,
+                "total_sold",
+              ]);
+              const total_price = total_sold * Number(record.price);
+              if (!isNaN(total_price)) {
+                updateGrandTotal(total_price);
+              }
+              return (
+                <Form.Item
+                  name={[record.name, "total_price"]}
+                  initialValue={total_price}
+                  rules={[{ required: true, message: "Harap isi total harga" }]}
+                  className="!mb-0"
+                  dependencies={[record.name, "total_sold"]}
+                >
+                  <InputNumber
+                    min={0}
+                    prefix="Rp."
+                    value={total_price}
+                    formatter={formatInputNumber}
+                    parser={parserInputNumber}
+                    readOnly
+                  />
+                </Form.Item>
+              );
+            }}
           </Form.Item>
         );
       },
@@ -243,7 +393,7 @@ export const TableReportShift1 = ({
           />
 
           <div className="w-full flex items-center justify-between mt-2 mb-2">
-            <Typography>Grand Total {session.shift} :</Typography>
+            <Typography>Grand Total {session.shift} : {grandTotal}</Typography>
           </div>
 
           <div className="w-full flex justify-center flex-col lg:flex-row lg:items-center lg:justify-between">

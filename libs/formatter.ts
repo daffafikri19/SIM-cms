@@ -47,6 +47,7 @@ export const formatDateLaporan = (tanggal : Date) => {
   return `${day}, ${date} ${month} ${year}`;
 };
 
+
 export const transformDataToArray = (data: any) => {
   return Object.keys(data).map((key, index) => ({
     id: index + 1,
@@ -54,3 +55,15 @@ export const transformDataToArray = (data: any) => {
     ...data[key],
   }));
 };
+
+
+export const formatInputNumber = (value: any) => {
+  if (!value) return '';
+  const numericValue = value.toString().replace(/[^0-9]/g, '');
+  return `${numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
+};
+
+export const parserInputNumber = (value: any) => {
+  if (!value) return '';
+  return value.toString().replace(/\./g, '');
+};  

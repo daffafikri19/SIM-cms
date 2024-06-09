@@ -38,8 +38,6 @@ const ReportStockPage = async (props: ServerProps) => {
 
   // const hasReportShift1 = todayReportShift1 && ReportShift1;
   
-  console.log(reports);
-
   return (
     <div className="w-full space-y-4">
       <div className="w-full flex flex-col-reverse lg:flex-row items-center justify-between gap-2">

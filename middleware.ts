@@ -8,7 +8,7 @@ export default function Middleware(req: NextRequest) {
         return NextResponse.redirect(new URL('/dashboard', req.url));
     }
     
-    if(currentUrl.startsWith('/dashboard')) {
+    if(currentUrl.startsWith('/dashboard') || currentUrl.startsWith('/file-storage')) {
         if(!token || !token?.name || !token?.value) {
             return NextResponse.redirect(new URL('/', req.url))
         } else {

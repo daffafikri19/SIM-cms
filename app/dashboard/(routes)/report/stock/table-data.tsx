@@ -16,6 +16,7 @@ import {
 } from "@/types";
 import {
   formatDateLaporan,
+  formatDateTimeString,
   formatRupiah,
   transformDataToArray,
 } from "@/libs/formatter";
@@ -48,7 +49,7 @@ export const TableData = ({ data, session }: props) => {
       width: 100,
       render: (value, record, index) => {
         setReportDate(value);
-        return <p>{formatDateLaporan(value)}</p>;
+        return <p>{formatDateTimeString(value)}</p>;
       },
     },
     {

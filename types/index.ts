@@ -133,3 +133,28 @@ export type DetailReportValueShift2Props = {
   total_sold: number;
   total_price: number;
 };
+
+export type ReportSalesProps = {
+  id?: string;
+  reporter: UserProps;
+  total_income: number;
+  total_cash: number;
+  total_non_cash: number;
+  total_expences: number;
+  non_cash: number| NonCashProps;
+  expences: number | ExpencesProps;
+  report_date: string;
+}
+
+export type NonCashProps = {
+  id?: number;
+  reciept: string;
+  description: string;
+  amount: number;
+}
+
+export type ExpencesProps = {
+  id?: number;
+  amount: number;
+  description: string;
+}
