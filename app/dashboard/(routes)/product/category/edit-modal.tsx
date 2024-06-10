@@ -1,12 +1,10 @@
 "use client";
 
-import React, { useEffect, useState, useTransition } from "react";
+import React, { useState, useTransition } from "react";
 import { Button, Form, Input, Modal, message } from "antd";
 import { EditOutlined } from "@ant-design/icons";
-import {
-  editCategoryProduct,
-  fetchCategoryProductId,
-} from "@/app/api/mutations/products";
+import axios from "axios";
+import { refresher } from "@/app/api/services/refresher";
 
 type props = {
   id: number;
@@ -18,16 +16,15 @@ export const EditModal = ({ id }: props) => {
   const [pending, startTransition] = useTransition();
 
   const getCategoryId = async () => {
-    await fetchCategoryProductId(id)
-      .then((res) => {
-        const data = res.data;
-        setName(data.name);
-      })
-      .catch((err) => {
-        if (err.message) {
-          message.error(err.message);
-        }
-      });
+    await axios.post(process.env.NEXT_PUBLIC_API_URL + `/api/product/category/get/${id}`, {
+      id: id
+    }).then(async (res) => {
+      if(res.status === 200) {
+        setName(res.data.data.name)
+      } else {
+        return message.error(res.data.message)
+      }
+    });
   };
 
   const handleOk = async () => {
@@ -36,19 +33,22 @@ export const EditModal = ({ id }: props) => {
     }
 
     startTransition(async () => {
-      await editCategoryProduct({
+      await axios.patch(process.env.NEXT_PUBLIC_API_URL + `/api/product/category/update/${id}`, {
         id: Number(id),
         name: name,
-      })
-        .then((res) => {
-          res?.status === 200
-            ? message.success(res?.message)
-            : message.error(res?.message);
-        })
-        .then(() => {
-          setName("");
+      }).then(async (res) => {
+        if(res.status === 200) {
+          await refresher({ path: "/dashboard/product/create" })
+          await refresher({ path: "/dashboard/product/category" })
+          setName("")
           setOpenModal(false);
-        });
+          message.success(res.data.message)
+        } else {
+          setName("")
+          setOpenModal(false);
+          return message.error(res.data.message)
+        }
+      });
     });
   };
 
@@ -71,7 +71,7 @@ export const EditModal = ({ id }: props) => {
         cancelText="batal"
         confirmLoading={pending}
       >
-        <Form className="mt-10" layout="vertical">
+        <Form className="mt-10" layout="vertical" initialValues={{ name: name }}>
           <Form.Item
             label="Nama Kategori"
             name={"name"}
@@ -83,7 +83,6 @@ export const EditModal = ({ id }: props) => {
               className=""
               type="text"
               value={name}
-              defaultValue={name}
               onChange={(e) => setName(e.target.value)}
               required
               placeholder="masukan nama kategori"

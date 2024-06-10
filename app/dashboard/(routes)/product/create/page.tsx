@@ -1,7 +1,27 @@
 import React from "react";
 import { FormCreateProduct } from "./form";
-import { fetchCategoryProduct } from "@/app/api/mutations/products";
+import { refresher } from "@/app/api/services/refresher";
 
+const fetchCategoryProduct = async () => {
+  try {
+    const res = await fetch(
+      process.env.NEXT_PUBLIC_API_URL + "/api/product/category/all",
+      {
+        cache: "no-cache",
+      }
+    );
+    await refresher({ path: '/dashboard/product/' });
+    const category = await res.json();
+    return category.data;
+  } catch (error: any) {
+    if (error.response) {
+      return {
+        message: error.response.data.message,
+        status: 500,
+      };
+    }
+  }
+};
 
 const AddProductPage = async () => {
   const categoryData = await fetchCategoryProduct();

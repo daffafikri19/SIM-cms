@@ -6,7 +6,46 @@ import { Button } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { TableFilter } from "../../../../components/table-filter";
-import { fetchDataProduct } from "@/app/api/mutations/products";
+import axios from "axios";
+import { refresher } from "@/app/api/services/refresher";
+
+const fetchDataProduct = async ({
+  take,
+  skip,
+  search,
+  startDate,
+  endDate,
+}: {
+  take: number;
+  skip: number;
+  search: string | null;
+  startDate: string | null;
+  endDate: string | null;
+}) => {
+  try {
+    const res = await axios.get(
+      process.env.NEXT_PUBLIC_API_URL + "/api/product/all/display",
+      {
+        params: {
+          take,
+          skip,
+          search: search ? search : null,
+          startDate: startDate ? startDate : null,
+          endDate: endDate ? endDate : null,
+        },
+      }
+    );
+    await refresher({ path: "/dashboard/product" })
+    return res.data.data;
+  } catch (error: any) {
+    if (error.response) {
+      return {
+        message: error.response.data.message,
+        status: 500
+      }
+    }
+  }
+};
 
 
 const ProductsPage = async (props: ServerProps) => {

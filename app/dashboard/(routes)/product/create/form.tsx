@@ -15,11 +15,10 @@ import type { FormProps } from "antd";
 import { CloseOutlined, PlusOutlined } from "@ant-design/icons";
 import { ProductProps } from "@/types";
 import { FileManager } from "@/components/open-filemanager";
-import {
-  createCategoryProduct,
-  createProduct,
-} from "@/app/api/mutations/products";
 import { useRouter } from "next/navigation";
+import { refresher } from "@/app/api/services/refresher";
+import axios from "axios";
+import { formatInputNumber, parserInputNumber } from "@/libs/formatter";
 
 type props = {
   categoryData: {
@@ -48,25 +47,23 @@ export const FormCreateProduct = ({ categoryData }: props) => {
     values
   ) => {
     startTransition(async () => {
-      await createProduct({
+      await axios.post(process.env.NEXT_PUBLIC_API_URL + "/api/product/create", {
         name: values.name,
-        price: values.price,
         picture: formdata.picture,
-        max_age: values.max_age,
+        price: values.price,
         category: values.category,
+        max_age: values.max_age
+      }).then(async (res) => {
+        if(res.status === 201) {
+          message.success(res.data.message)
+          await refresher({ path: "/dashboard/product" })
+          router.push("/dashboard/product");
+        } else {
+          return message.error(res.data.message)
+        }
       })
-        .then((res) => {
-          res?.status === 201
-            ? message.success(res?.message)
-            : message.error(res?.message);
-          return router.push("/dashboard/product");
-        })
-        .catch((err) => {
-          throw new Error(err);
-        });
-    });
-  };
-
+    })
+  }
   const handleFileSelected = (image: string) => {
     setFormdata((prev) => ({
       ...prev,
@@ -82,13 +79,17 @@ export const FormCreateProduct = ({ categoryData }: props) => {
   };
 
   const handleCreateNewCategory = async () => {
-    await createCategoryProduct({ name: formdata.category.name }).then(
-      (res) => {
-        return res?.status === 201
-          ? message.success(res?.message)
-          : message.error(res?.message);
+    await axios.post(process.env.NEXT_PUBLIC_API_URL + "/api/product/category/create", {
+      name: formdata.category.name
+    }).then(async (res) => {
+      if(res.status === 201) {
+        await refresher({ path: "/dashboard/product/create" })
+        await refresher({ path: "/dashboard/product/category" })
+        message.success(res.data.message)
+      } else {
+        return message.error(res.data.message)
       }
-    );
+    });
   };
 
   return (
@@ -144,10 +145,11 @@ export const FormCreateProduct = ({ categoryData }: props) => {
         rules={[{ required: true, message: "Harga produk harus diisi" }]}
       >
         <InputNumber
-          prefix="Rp"
-          placeholder="angka bulat tanpa titik"
+          prefix="Rp."
           type="number"
           name="price"
+          formatter={formatInputNumber}
+          parser={parserInputNumber}
           value={formdata.price}
           onChange={(e) =>
             setFormdata((prev) => ({

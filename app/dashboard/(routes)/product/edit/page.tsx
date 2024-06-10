@@ -13,7 +13,6 @@ const fetchProductById = async ({ id }: { id: string }) => {
         id: id,
       }
     );
-    console.log(res.data)
     return res.data.data;
   } catch (error: any) {
     if (error.response) {
@@ -44,6 +43,7 @@ const EditProductPage = async ({ params, searchParams }: ServerProps) => {
   const product_id = searchParams?.id as string;
   const productData = await fetchProductById({ id: product_id });
   const categoryProduct = await fetchCategoryProduct();
+
   if (!product_id) {
     message.warning("ID produk tidak ada");
     redirect("/dashboard/product");

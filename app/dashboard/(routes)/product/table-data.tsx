@@ -108,7 +108,7 @@ const columns: ColumnsType<DataType> = [
         });
       };
       return (
-        <div className="flex items-center gap-1">
+        <div className="flex items-center justify-center gap-1">
           <Link href={`/dashboard/product/edit?id=${id}`}>
             <Button size="small" type="dashed" icon={<EditOutlined />} />
           </Link>

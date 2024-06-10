@@ -61,7 +61,7 @@ export const AddModal = () => {
         cancelText="batal"
         confirmLoading={pending}
       >
-        <Form className="mt-10" layout="vertical">
+        <Form className="mt-10" layout="vertical" initialValues={{ name: name }}>
           <Form.Item
             label="Nama Kategori"
             name={"name"}
@@ -73,7 +73,6 @@ export const AddModal = () => {
               className=""
               type="text"
               value={name}
-              defaultValue={name}
               onChange={(e) => setName(e.target.value)}
               required
               placeholder="masukan nama kategori"

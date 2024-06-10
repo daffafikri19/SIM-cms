@@ -6,8 +6,10 @@ import type { FormProps } from "antd";
 import { CloseOutlined } from "@ant-design/icons";
 import { ProductProps } from "@/types";
 import { FileManager } from "@/components/open-filemanager";
-import { createProduct, updateProduct } from "@/app/api/mutations/products";
 import { useRouter } from "next/navigation";
+import axios from "axios";
+import { refresher } from "@/app/api/services/refresher";
+import { formatInputNumber, parserInputNumber } from "@/libs/formatter";
 
 type props = {
   product_id: string;
@@ -31,26 +33,23 @@ export const FormEditProduct = ({
     values
   ) => {
     startTransition(async () => {
-      await updateProduct({
+      await axios.patch(process.env.NEXT_PUBLIC_API_URL + `/api/product/update/${product_id}`, {
         id: product_id,
         name: values.name,
         price: values.price,
         picture: formdata.picture,
         max_age: values.max_age,
-        category: values.category,
+        category: values.category
+      }).then(async (res) => {
+        if(res.status === 200) {
+          await refresher({ path: "/dashboard/product" })
+          await refresher({ path: "/dashboard/product/edit" })
+          message.success(res.data.message)
+          return router.push("/dashboard/product")
+        } else {
+          return message.error(res.data.message)
+        }
       })
-        .then((res) => {
-          res?.status === 200
-            ? message.success(res?.message)
-            : message.error(res?.message);
-          return router.push("/dashboard/product");
-        })
-        .catch((error : any) => {
-          if(error.response) {
-            message.error(error.response.data.message)
-            console.log(error.response.data.errorMessage)
-          }
-        });
     });
   };
 
@@ -129,9 +128,10 @@ export const FormEditProduct = ({
       >
         <InputNumber
           prefix="Rp"
-          placeholder="angka bulat tanpa titik"
           type="number"
           name="price"
+          formatter={formatInputNumber}
+          parser={parserInputNumber}
           value={formdata.price}
           onChange={(e) =>
             setFormdata((prev) => ({
