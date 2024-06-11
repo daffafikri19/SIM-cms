@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useMemo, useState, useTransition } from "react";
+import React, { useEffect, useState, useTransition } from "react";
 import {
   Button,
   Card,
@@ -7,66 +7,57 @@ import {
   FormProps,
   Input,
   InputNumber,
-  Space,
   Typography,
   message,
 } from "antd";
 import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
-import { ReportSalesProps, authProps } from "@/types";
+import { authProps } from "@/types";
 import { FormItem } from "./form-item";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
-import {
-  formatInputNumber,
-  parserInputNumber,
-  transformDataToArray,
-} from "@/libs/formatter";
+import { formatInputNumber, parserInputNumber } from "@/libs/formatter";
 import axios from "axios";
-import { revalidatePath } from "next/cache";
 import { refresher } from "@/app/api/services/refresher";
 
 type props = {
   session: authProps;
 };
 
-type nonCashSerializer = {
-  QR: number;
-  EDC: number;
-  Grab: number;
-  Pesanan: number;
-  [additional: string]: number;
-  income: number;
-};
-
-type expencesSerializer = {
-  eat: number;
-  [additional: string]: number;
-  income: number;
-};
-
 export const FormCreate = ({ session }: props) => {
   const [pending, startTransition] = useTransition();
   const [form] = Form.useForm();
-  const [nonCashValues, setNonCashValues] = useState<nonCashSerializer>({
-    QR: 0,
-    EDC: 0,
-    Grab: 0,
-    Pesanan: 0,
-    income: 0,
-  });
 
   const [additionalNonCash, setAdditionalNonCash] = useState<{
     [key: string]: number;
   }>({});
 
-  const [additionalExpences, setAdditionalExpences] = useState<{
+  const [additionalExpenses, setAdditionalExpenses] = useState<{
     [key: string]: number;
   }>({});
 
-  const [expencesValue, setExpencesValue] = useState<expencesSerializer>({
-    eat: 0,
-    income: 0,
-  });
+  const qrValue = Form.useWatch("qr", form) || 0;
+  const edcValue = Form.useWatch("edc", form) || 0;
+  const grabValue = Form.useWatch("grab", form) || 0;
+  const pesananValue = Form.useWatch("pesanan", form) || 0;
+
+  const eatValue = Form.useWatch("eat", form) || 0;
+
+  useEffect(() => {
+    const totalNonCash =
+      qrValue +
+      edcValue +
+      grabValue +
+      pesananValue +
+      Object.values(additionalNonCash).reduce((acc, val) => acc + val, 0);
+    form.setFieldsValue({ income_non_cash: totalNonCash });
+  }, [qrValue, edcValue, grabValue, pesananValue, additionalNonCash, form]);
+
+  useEffect(() => {
+    const totalExpenses =
+      eatValue +
+      Object.values(additionalExpenses).reduce((acc, val) => acc + val, 0);
+    form.setFieldsValue({ expense_cash: totalExpenses });
+  }, [eatValue, additionalExpenses, form]);
 
   const handleAdditionalNonCashChange = (
     index: number,
@@ -79,12 +70,12 @@ export const FormCreate = ({ session }: props) => {
     }));
   };
 
-  const handleAdditionalExpencesChange = (
+  const handleAdditionalExpensesChange = (
     index: number,
     field: string,
     value: any
   ) => {
-    setAdditionalExpences((prev) => ({
+    setAdditionalExpenses((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -102,12 +93,12 @@ export const FormCreate = ({ session }: props) => {
     });
   };
 
-  const handleAdditionalExpencesKeyValueChange = (
+  const handleAdditionalExpensesKeyValueChange = (
     index: number,
     key: string,
     value: number
   ) => {
-    setAdditionalExpences((prev) => {
+    setAdditionalExpenses((prev) => {
       const newFields = { ...prev };
       delete newFields[Object.keys(newFields)[index]];
       return { ...newFields, [key]: value };
@@ -116,15 +107,18 @@ export const FormCreate = ({ session }: props) => {
 
   const submitForm: FormProps["onFinish"] = async (values) => {
     const non_cash = {
-      ...nonCashValues,
+      QR: values.qr || 0,
+      EDC: values.edc || 0,
+      Grab: values.grab || 0,
+      Pesanan: values.pesanan || 0,
       ...additionalNonCash,
     };
 
-    const expences = {
-      ...expencesValue,
-      ...additionalExpences,
+    const expenses = {
+      eat: values.eat || 0,
+      ...additionalExpenses,
     };
-    // Convert non_cash object to array of objects
+
     const nonCashArray = Object.entries(non_cash).map(
       ([description, amount]) => ({
         description,
@@ -132,8 +126,7 @@ export const FormCreate = ({ session }: props) => {
       })
     );
 
-    // Convert expences object to array of objects
-    const expencesArray = Object.entries(expences).map(
+    const expensesArray = Object.entries(expenses).map(
       ([description, amount]) => ({
         description,
         amount,
@@ -142,33 +135,45 @@ export const FormCreate = ({ session }: props) => {
 
     const finalData = {
       non_cash: nonCashArray,
-      expences: expencesArray,
+      expenses: expensesArray,
     };
 
-    console.log("Final Data:", finalData);
+    const payload = {
+      reporter: session.name,
+      non_cash: finalData.non_cash,
+      expenses: finalData.expenses,
+      total_income: values.income_non_cash + values.income_cash,
+      total_cash: values.income_cash,
+      total_non_cash: values.income_non_cash,
+      total_expenses: values.expense_cash,
+    };
 
-    startTransition(async () => {
-      await axios.post(process.env.NEXT_PUBLIC_API_URL + "/api/report/sales/create", {
-        reporter: session.name,
-        non_cash: finalData.non_cash,
-        expences: finalData.expences,
-        total_income: 10000,
-        total_cash: 20000,
-        total_non_cash: 30000,
-        total_expences: 20000,
-      }).then(async (res) => {
-        if(res.status !== 200) {
-          message.error(res.data.message)
-          await refresher({ path: '/dashboard/report/sales' })
-        } else {
-          message.success(res.data.message)
-          await refresher({ path: '/dashboard/report/sales' })
-        }
-      }).catch((error : any) => {
-        console.log("ERROR REPORT SALES", error)
-        message.error(`${error.response.data.message}`)
-      })
-    })
+    console.log(payload);
+
+    // startTransition(async () => {
+    //   await axios
+    //     .post(process.env.NEXT_PUBLIC_API_URL + "/api/report/sales/create", {
+    //       reporter: session.name,
+    //       non_cash: finalData.non_cash,
+    //       expences: finalData.expences,
+    //       total_income: values.income_non_cash + values.income_cash,
+    //       total_cash: values.income_cash,
+    //       total_non_cash: values.income_non_cash,
+    //       total_expences: values.income_cash,
+    //     })
+    //     .then(async (res) => {
+    //       if (res.status !== 200) {
+    //         message.error(res.data.message);
+    //         await refresher({ path: "/dashboard/report/sales" });
+    //       } else {
+    //         message.success(res.data.message);
+    //         await refresher({ path: "/dashboard/report/sales" });
+    //       }
+    //     })
+    //     .catch((error: any) => {
+    //       message.error(`${error.response.data.message}`);
+    //     });
+    // });
   };
 
   return (
@@ -193,36 +198,28 @@ export const FormCreate = ({ session }: props) => {
                   label="QR"
                   type="number"
                   prefix="Rp."
-                  onChange={(value) =>
-                    setNonCashValues((prev) => ({ ...prev, QR: value }))
-                  }
+                  className="!mb-0"
                 />
                 <FormItem
                   name="edc"
                   label="EDC BCA"
                   type="number"
                   prefix="Rp."
-                  onChange={(value) =>
-                    setNonCashValues((prev) => ({ ...prev, EDC: value }))
-                  }
+                  className="!mb-0"
                 />
                 <FormItem
                   name="grab"
                   label="GRAB"
                   type="number"
                   prefix="Rp."
-                  onChange={(value) =>
-                    setNonCashValues((prev) => ({ ...prev, Grab: value }))
-                  }
+                  className="!mb-0"
                 />
                 <FormItem
                   name="pesanan"
                   label="Pesanan"
                   type="number"
                   prefix="Rp."
-                  onChange={(value) =>
-                    setNonCashValues((prev) => ({ ...prev, Pesanan: value }))
-                  }
+                  className="!mb-0"
                 />
 
                 <Form.List name="non_cash_additional">
@@ -306,8 +303,8 @@ export const FormCreate = ({ session }: props) => {
 
               <div className="w-full">
                 <Form.Item
-                  className="!w-1/2 float-end mt-5 !mb-0"
-                  label="Pendapatan"
+                  className="!w-fit float-end mt-5 !mb-0"
+                  label="Total"
                   name={"income_non_cash"}
                   shouldUpdate
                 >
@@ -316,13 +313,6 @@ export const FormCreate = ({ session }: props) => {
                     prefix="Rp."
                     formatter={formatInputNumber}
                     parser={parserInputNumber}
-                    value={nonCashValues.income}
-                    onChange={(value) =>
-                      setNonCashValues((prevState) => ({
-                        ...prevState,
-                        income: value,
-                      }))
-                    }
                   />
                 </Form.Item>
               </div>
@@ -337,9 +327,7 @@ export const FormCreate = ({ session }: props) => {
                   name="eat"
                   prefix="Rp."
                   type="number"
-                  onChange={(value) =>
-                    setExpencesValue((prev) => ({ ...prev, eat: value }))
-                  }
+                  className="!mb-0"
                 />
 
                 <Form.List name="cash-additional">
@@ -364,11 +352,11 @@ export const FormCreate = ({ session }: props) => {
                             <Input
                               type="text"
                               onChange={(event) =>
-                                handleAdditionalExpencesKeyValueChange(
+                                handleAdditionalExpensesKeyValueChange(
                                   index,
                                   event.target.value,
-                                  additionalExpences[
-                                    Object.keys(additionalExpences)[index]
+                                  additionalExpenses[
+                                    Object.keys(additionalExpenses)[index]
                                   ] || 0
                                 )
                               }
@@ -392,9 +380,9 @@ export const FormCreate = ({ session }: props) => {
                               formatter={formatInputNumber}
                               parser={parserInputNumber}
                               onChange={(value) =>
-                                handleAdditionalExpencesChange(
+                                handleAdditionalExpensesChange(
                                   index,
-                                  Object.keys(additionalExpences)[index],
+                                  Object.keys(additionalExpenses)[index],
                                   value
                                 )
                               }
@@ -422,31 +410,86 @@ export const FormCreate = ({ session }: props) => {
               </div>
               <div className="w-full">
                 <Form.Item
-                  className="!w-1/2 float-end mt-5 !mb-0"
+                  className="!w-fit float-end mt-5 !mb-0"
                   label="Pengeluaran"
-                  name={"income-cash"}
+                  name={"expense_cash"}
+                  shouldUpdate
                 >
                   <InputNumber
                     className="!w-full"
                     prefix="Rp."
                     formatter={formatInputNumber}
                     parser={parserInputNumber}
-                    onChange={(value) =>
-                      setExpencesValue((prev) => ({ ...prev, income: value }))
-                    }
                   />
                 </Form.Item>
               </div>
+            </div>
+          </Card>
+
+          <Card className="shadow-md float-right">
+            <div className="w-full flex flex-col gap-2">
+            <Form.Item
+              className="!w-full !mb-0"
+              label="Pendapatan Tunai"
+              name={"income_cash"}
+              shouldUpdate
+            >
+              <InputNumber
+                className="!w-full"
+                prefix="Rp."
+                formatter={formatInputNumber}
+                parser={parserInputNumber}
+              />
+            </Form.Item>
+
+            <Form.Item
+              className="!w-full !mb-0"
+              label="Total Pengeluaran"
+              name={"total_expense"}
+              shouldUpdate
+            >
+              <InputNumber
+                className="!w-full"
+                prefix="Rp."
+                formatter={formatInputNumber}
+                parser={parserInputNumber}
+              />
+            </Form.Item>
+
+            <Form.Item
+              className="!w-full !mb-0"
+              label="Total Pendapatan"
+              name={"total_income"}
+              shouldUpdate
+            >
+              <InputNumber
+                className="!w-full"
+                prefix="Rp."
+                formatter={formatInputNumber}
+                parser={parserInputNumber}
+              />
+            </Form.Item>
             </div>
           </Card>
         </div>
 
         <Form.Item>
           <div className="flex items-center justify-end gap-3 mt-5">
-            <Button type="dashed" disabled={pending} loading={pending} htmlType="button" danger>
+            <Button
+              type="dashed"
+              disabled={pending}
+              loading={pending}
+              htmlType="button"
+              danger
+            >
               Batal
             </Button>
-            <Button type="primary" disabled={pending} loading={pending} htmlType="submit">
+            <Button
+              type="primary"
+              disabled={pending}
+              loading={pending}
+              htmlType="submit"
+            >
               Simpan
             </Button>
           </div>

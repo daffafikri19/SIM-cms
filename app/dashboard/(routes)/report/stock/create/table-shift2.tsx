@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useEffect, useState, useTransition } from "react";
+import React, { useState, useTransition } from "react";
 import { Button, Form, InputNumber, Table, Typography, message } from "antd";
 import type { TableProps } from "antd";
 import { SwapRightOutlined } from "@ant-design/icons";
 import {
-  formatDateLaporan,
+  formatDateTimeString,
   formatDigitRupiah,
   formatRupiah,
 } from "@/libs/formatter";
@@ -15,8 +15,9 @@ import {
   ReportStockProps,
   authProps,
 } from "@/types";
-import { createReportStockShift2 } from "@/app/api/mutations/report";
 import { useRouter } from "next/navigation";
+import axios from "axios";
+import { refresher } from "@/app/api/services/refresher";
 
 type ColumnsType<T> = TableProps<T>["columns"];
 
@@ -46,6 +47,7 @@ export const TableReportShift2 = ({
   const [form] = Form.useForm();
   const onMobile = useMediaQuery("(max-width: 1024px)");
   const [messageApi, contextHolder] = message.useMessage();
+  const [grandTotal, setGrandTotal] = useState<number | any>(0);
 
   const dataShift1 = reportShiftToday.report_shift_1?.values as any;
 
@@ -61,18 +63,22 @@ export const TableReportShift2 = ({
 
   const onFinish = async (values: any) => {
     startTransition(async () => {
-      await createReportStockShift2({
-        reporter: session.name,
-        values: values,
-        report_id: reportShiftToday.id || "",
-      }).then((res) => {
-        if (res?.status === 201) {
-          messageApi.success(res.message);
-          router.push("/dashboard/report/stock");
-        } else {
-          messageApi.error(res?.message);
-        }
-      });
+      await axios
+        .post(process.env.NEXT_PUBLIC_API_URL + "/api/report/stock/shift2", {
+          reporter: session.name,
+          values: values,
+          report_id: reportShiftToday.id,
+          grand_total: Number(grandTotal)
+        })
+        .then(async (res) => {
+          if (res.status === 201) {
+            await refresher({ path: "/dashboard/report/stock" });
+            messageApi.success(res.data.message);
+            return router.push("/dashboard/report/stock");
+          } else {
+            return messageApi.error(res.data.message)
+          }
+        });
     });
   };
 
@@ -155,6 +161,18 @@ export const TableReportShift2 = ({
                     total_sold: total_sold,
                     total_price: total_sold * record.price,
                   },
+                });
+
+                const allValues = form.getFieldsValue();
+
+                let grand_total = 0;
+
+                Object.keys(allValues).forEach((key) => {
+                  const item = allValues[key];
+                  if (item.total_price) {
+                    grand_total += item.total_price;
+                    setGrandTotal(grand_total);
+                  }
                 });
               }}
             />
@@ -246,9 +264,13 @@ export const TableReportShift2 = ({
             title={() => {
               return (
                 <p>
-                  Laporan Stock {session.shift} <br /> hari :{" "}
-                  {formatDateLaporan(new Date(Date.now()))} <br />
-                  report id: {reportShiftToday?.id}
+                  Pembuat : <b>{session.name}</b> <br />
+                  Laporan Stok : <b>{session.shift}</b> <br />
+                  Hari :{" "}
+                  <b>
+                    {formatDateTimeString(new Date(Date.now()).toISOString())}
+                  </b>{" "}
+                  <br />
                 </p>
               );
             }}
@@ -258,7 +280,10 @@ export const TableReportShift2 = ({
           />
 
           <div className="w-full flex items-center justify-between mt-2 mb-2">
-            <Typography>Grand Total {session.shift} :</Typography>
+            <Typography>
+              Grand Total {session.shift} :{" "}
+              {grandTotal ? formatRupiah(grandTotal) : "Rp. 0"}
+            </Typography>
           </div>
 
           <div className="w-full flex justify-center flex-col lg:flex-row lg:items-center lg:justify-between">

@@ -103,14 +103,14 @@ export type ReportStockProps = {
     report_id: string;
     user_id: string;
     values: DetailReportValueShift1Props;
-    reporter: UserProps | null;
+    reporter: string;
   } | null;
   report_shift_2: {
     id: number;
     report_id: string;
     user_id: string;
     values: DetailReportValueShift2Props;
-    reporter: UserProps | null;
+    reporter: string;
   } | null;
 };
 

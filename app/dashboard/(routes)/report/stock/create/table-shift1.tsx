@@ -1,22 +1,26 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import React, {
+  useEffect,
+  useState,
+  useTransition,
+} from "react";
 import { Button, Form, InputNumber, Table, Typography, message } from "antd";
 import type { TableProps } from "antd";
 import { SwapRightOutlined } from "@ant-design/icons";
 import {
-  formatDateLaporan,
+  formatDateTimeString,
   formatInputNumber,
   formatRupiah,
   parserInputNumber,
 } from "@/libs/formatter";
 import { useMediaQuery } from "usehooks-ts";
-import { ReportStockProps, authProps } from "@/types";
-import { JwtPayload } from "jwt-decode";
-import { createReportStockShift1 } from "@/app/api/mutations/report";
+import { authProps } from "@/types";
 import { useRouter } from "next/navigation";
 import { useCurrentDate } from "@/store/use-date";
 import { fetchReportShiftYesterday } from "@/app/api/mutations/products";
+import axios from "axios";
+import { refresher } from "@/app/api/services/refresher";
 
 type ColumnsType<T> = TableProps<T>["columns"];
 
@@ -39,7 +43,7 @@ export const TableReportShift1 = ({
   session,
 }: {
   dataProduct: DataType[];
-  session: authProps & JwtPayload;
+  session: authProps;
 }) => {
   const [pending, startTransition] = useTransition();
   const router = useRouter();
@@ -47,8 +51,7 @@ export const TableReportShift1 = ({
   const [messageApi, contextHolder] = message.useMessage();
   const { currentDate } = useCurrentDate();
   const [initialValue, setInitialValue] = useState<any>();
-  const [grandTotal, setGrandTotal] = useState(0);
-  const grandTotalRef = useRef(0);
+  const [grandTotal, setGrandTotal] = useState<number | any>(0);
 
   useEffect(() => {
     const getDataReportYesterday = async () => {
@@ -74,33 +77,29 @@ export const TableReportShift1 = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentDate]);
 
-  
-  const updateGrandTotal = useCallback(
-    (total_price : any) => {
-      setGrandTotal(prev => {
-        const newGrandTotal = prev - grandTotalRef.current + total_price;
-        grandTotalRef.current = newGrandTotal;
-        return newGrandTotal;
-      });
-    },
-    [setGrandTotal]
-  );
-
   const onFinish = async (values: any) => {
     startTransition(async () => {
-      await createReportStockShift1({
-        reporter: session.name,
-        values: values,
-        grand_total: 0,
-        date: currentDate?.toISOString(),
-      }).then((res) => {
-        if (res?.status === 201) {
-          messageApi.success(res.message);
-          router.push("/dashboard/report/stock");
-        } else {
-          messageApi.error(res?.message);
-        }
-      });
+      await axios
+        .post(process.env.NEXT_PUBLIC_API_URL + "/api/report/stock/shift1", {
+          reporter: session.name,
+          values: values,
+          grand_total: grandTotal,
+          date: currentDate?.toISOString(),
+        })
+        .then(async (res) => {
+          if (res.status === 201) {
+            await refresher({ path: "/dashboard/report/stock" });
+            messageApi.success(res.data.message);
+            return router.push("/dashboard/report/stock");
+          } else if (res.status === 404) {
+            messageApi.warning(
+              "Sesi aplikasi telah berakhir, silahkan login kembali"
+            );
+            return router.push("/");
+          } else {
+            return messageApi.error(res.data.message);
+          }
+        });
     });
   };
 
@@ -146,6 +145,7 @@ export const TableReportShift1 = ({
           <Form.Item
             name={[record.name, "stock_before"]}
             rules={[{ required: true, message: "Harap isi stok sebelumnya" }]}
+            className="!mb-0"
           >
             <InputNumber min={0} />
           </Form.Item>
@@ -162,6 +162,7 @@ export const TableReportShift1 = ({
             name={[record.name, "afternoon_stock"]}
             rules={[{ required: true, message: "Harap isi stok sore" }]}
             dependencies={[record.name, "stock_before", "order", "withdrawal"]}
+            className="!mb-0"
           >
             <InputNumber
               min={0}
@@ -208,6 +209,7 @@ export const TableReportShift1 = ({
               "afternoon_stock",
               "withdrawal",
             ]}
+            className="!mb-0"
           >
             <InputNumber
               min={0}
@@ -254,6 +256,7 @@ export const TableReportShift1 = ({
               "order",
               "afternoon_stock",
             ]}
+            className="!mb-0"
           >
             <InputNumber
               min={0}
@@ -278,6 +281,17 @@ export const TableReportShift1 = ({
                     total_sold: total_sold,
                     total_price: total_sold * Number(record.price),
                   },
+                });
+                const allValues = form.getFieldsValue();
+
+                let grand_total = 0;
+
+                Object.keys(allValues).forEach((key) => {
+                  const item = allValues[key];
+                  if (item.total_price) {
+                    grand_total += item.total_price;
+                    setGrandTotal(grand_total)
+                  }
                 });
               }}
             />
@@ -340,9 +354,6 @@ export const TableReportShift1 = ({
                 "total_sold",
               ]);
               const total_price = total_sold * Number(record.price);
-              if (!isNaN(total_price)) {
-                updateGrandTotal(total_price);
-              }
               return (
                 <Form.Item
                   name={[record.name, "total_price"]}
@@ -382,8 +393,10 @@ export const TableReportShift1 = ({
             title={() => {
               return (
                 <p>
-                  Laporan Stock <b>{session.shift}</b> <br />
-                  Tanggal : <b>{formatDateLaporan(currentDate!)}</b>
+                  Pembuat: <b>{session.name}</b> <br />
+                  Laporan Stock : <b>{session.shift}</b> <br />
+                  Tanggal :{" "}
+                  <b>{formatDateTimeString(currentDate.toISOString())}</b>
                 </p>
               );
             }}
@@ -393,7 +406,7 @@ export const TableReportShift1 = ({
           />
 
           <div className="w-full flex items-center justify-between mt-2 mb-2">
-            <Typography>Grand Total {session.shift} : {grandTotal}</Typography>
+            <Typography>Grand Total {session.shift} : {grandTotal ? formatRupiah(grandTotal) : "Rp. 0"}</Typography>
           </div>
 
           <div className="w-full flex justify-center flex-col lg:flex-row lg:items-center lg:justify-between">

@@ -1,7 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
-import { Button, Modal, Space, Table, TableProps, Tag, Typography } from "antd";
+import React, { useEffect, useState, useTransition } from "react";
+import {
+  Button,
+  Form,
+  Modal,
+  Space,
+  Table,
+  TableProps,
+  Tag,
+  Typography,
+} from "antd";
 import {
   EyeOutlined,
   DownloadOutlined,
@@ -12,6 +21,7 @@ import {
   DetailReportValueShift1Props,
   DetailReportValueShift2Props,
   ReportStockProps,
+  UserProps,
   authProps,
 } from "@/types";
 import {
@@ -21,6 +31,8 @@ import {
   transformDataToArray,
 } from "@/libs/formatter";
 import Link from "next/link";
+import { fetchUserDataById } from "@/app/api/mutations/users";
+import { useReporter } from "@/store/use-reporter";
 
 type props = {
   data: ReportStockProps[];
@@ -33,6 +45,11 @@ export const TableData = ({ data, session }: props) => {
   const [openModal1, setOpenModal1] = useState(false);
   const [openModal2, setOpenModal2] = useState(false);
   const [reportDate, setReportDate] = useState<string | Date>("");
+  const { name, setName, shift, setShift } = useReporter();
+  const [grandTotalShift1, setGrandTotalShift1] = useState(0);
+  const [grandTotalShift2, setGrandTotalShift2] = useState(0);
+  const [pending, startTransition] = useTransition();
+
   const columns: ColumnsType<ReportStockProps> = [
     {
       title: "ID",
@@ -53,11 +70,12 @@ export const TableData = ({ data, session }: props) => {
       },
     },
     {
-      title: "Total Besar",
+      title: "Revenue",
       dataIndex: "grand_total",
       width: 100,
+      align: "center",
       render: (value, record, index) => {
-        return <p>{value}</p>;
+        return <p>{value ? formatRupiah(value) : "Rp. -"}</p>;
       },
     },
     {
@@ -65,54 +83,73 @@ export const TableData = ({ data, session }: props) => {
       dataIndex: "report_shift_1",
       width: 100,
       align: "center",
-      render: (value : ReportStockProps["report_shift_1"], record, index) => {
+      render: (value: ReportStockProps["report_shift_1"], record, index) => {
         if (value?.values) {
           const dataReportShift1 = transformDataToArray(value.values);
-          const ReportValueColumn1: ColumnsType<DetailReportValueShift1Props> = [
-            {
-              title: "Nama Produk",
-              dataIndex: "product_name",
-            },
-            {
-              title: "Stok Sebelumnya",
-              dataIndex: "stock_before",
-            },
-            {
-              title: "Stok Sore",
-              dataIndex: "afternoon_stock",
-            },
-            {
-              title: "Jumlah Order",
-              dataIndex: "order",
-              align: "center",
-            },
-            {
-              title: "Penarikan",
-              dataIndex: "withdrawal",
-              align: "center",
-            },
-            {
-              title: "Total Terjual",
-              dataIndex: "total_sold",
-              align: "center",
-            },
-            {
-              title: "Total Harga",
-              dataIndex: "total_price",
-              align: "center",
-              render: (value, record, index) => {
-                return <p>{value ? formatRupiah(value) : null}</p>;
+          const ReportValueColumn1: ColumnsType<DetailReportValueShift1Props> =
+            [
+              {
+                title: "Nama Produk",
+                dataIndex: "product_name",
               },
-            },
-          ];
+              {
+                title: "Stok Sebelumnya",
+                dataIndex: "stock_before",
+              },
+              {
+                title: "Stok Sore",
+                dataIndex: "afternoon_stock",
+              },
+              {
+                title: "Jumlah Order",
+                dataIndex: "order",
+                align: "center",
+              },
+              {
+                title: "Penarikan",
+                dataIndex: "withdrawal",
+                align: "center",
+              },
+              {
+                title: "Total Terjual",
+                dataIndex: "total_sold",
+                align: "center",
+              },
+              {
+                title: "Total Harga",
+                dataIndex: "total_price",
+                align: "center",
+                render: (value, record, index) => {
+                  if (value) {
+                    const total = dataReportShift1.reduce((sum, item) => {
+                      return sum + (item.total_price || 0);
+                    }, 0);
+
+                    setGrandTotalShift1(total);
+                  }
+                  return <p>{value ? formatRupiah(value) : null}</p>;
+                },
+              },
+            ];
+
+          const handleOpenModal = async () => {
+            startTransition(async () => {
+              const user = await fetchUserDataById({ id: value.reporter });
+              setName(user.name);
+              setShift(user.shift);
+              setOpenModal1(true);
+            });
+          };
+
           return (
             <>
               <Button
                 type="dashed"
                 icon={<EyeOutlined />}
                 onClick={() => {
-                  setOpenModal1(true);
+                  handleOpenModal();
                 }}
+                loading={pending}
               >
                 Detail
               </Button>
@@ -131,14 +168,6 @@ export const TableData = ({ data, session }: props) => {
                   >
                     Tutup
                   </Button>,
-                  <Button
-                    key="download"
-                    type="primary"
-                    onClick={() => {}}
-                    icon={<DownloadOutlined />}
-                  >
-                    Export
-                  </Button>,
                 ]}
               >
                 <Table
@@ -146,10 +175,8 @@ export const TableData = ({ data, session }: props) => {
                   title={() => {
                     return (
                       <Space direction="vertical">
-                        <Typography>
-                          Pembuat : {value.reporter?.name}
-                        </Typography>
-                        <Typography>Shift : {value.reporter?.shift}</Typography>
+                        <Typography>Pembuat : {name}</Typography>
+                        <Typography>Shift : {shift}</Typography>
                         <Typography>
                           Dibuat :{" "}
                           {reportDate
@@ -159,6 +186,14 @@ export const TableData = ({ data, session }: props) => {
                       </Space>
                     );
                   }}
+                  footer={() => (
+                    <Typography>
+                      Total Shift 1 :{" "}
+                      {grandTotalShift1
+                        ? formatRupiah(grandTotalShift1)
+                        : "Rp. 0"}
+                    </Typography>
+                  )}
                   scroll={{ x: 0, y: 300 }}
                   columns={ReportValueColumn1}
                   dataSource={dataReportShift1}
@@ -176,39 +211,56 @@ export const TableData = ({ data, session }: props) => {
       dataIndex: "report_shift_2",
       width: 100,
       align: "center",
-      render: (value : ReportStockProps["report_shift_2"], record, index) => {
+      render: (value: ReportStockProps["report_shift_2"], record, index) => {
         if (value?.values) {
           const dataReportShift2 = transformDataToArray(value.values);
-          const ReportValueColumn2: ColumnsType<DetailReportValueShift2Props> = [
-            {
-              title: "Nama Produk",
-              dataIndex: "product_name",
-              align: "center",
-            },
-            {
-              title: "Stok Sebelumnya",
-              dataIndex: "stock_before",
-              align: "center",
-            },
-            {
-              title: "Stok Malam",
-              dataIndex: "night_stock",
-              align: "center",
-            },
-            {
-              title: "Total Terjual",
-              dataIndex: "total_sold",
-              align: "center",
-            },
-            {
-              title: "Total Harga",
-              dataIndex: "total_price",
-              align: "center",
-              render: (value, record, index) => {
-                return <p>{value ? formatRupiah(value) : null}</p>;
+          const ReportValueColumn2: ColumnsType<DetailReportValueShift2Props> =
+            [
+              {
+                title: "Nama Produk",
+                dataIndex: "product_name",
+                align: "center",
               },
-            },
-          ];
+              {
+                title: "Stok Sebelumnya",
+                dataIndex: "stock_before",
+                align: "center",
+              },
+              {
+                title: "Stok Malam",
+                dataIndex: "night_stock",
+                align: "center",
+              },
+              {
+                title: "Total Terjual",
+                dataIndex: "total_sold",
+                align: "center",
+              },
+              {
+                title: "Total Harga",
+                dataIndex: "total_price",
+                align: "center",
+                render: (value, record, index) => {
+                  if (value) {
+                    const total = dataReportShift2.reduce((sum, item) => {
+                      return sum + (item.total_price || 0);
+                    }, 0);
+
+                    setGrandTotalShift2(total);
+                  }
+                  return <p>{value ? formatRupiah(value) : null}</p>;
+                },
+              },
+            ];
+
+          const handleOpenModal = async () => {
+            startTransition(async () => {
+              const user = await fetchUserDataById({ id: value.reporter });
+              setName(user.name);
+              setShift(user.shift);
+              setOpenModal2(true);
+            });
+          };
 
           return (
             <>
@@ -216,8 +268,9 @@ export const TableData = ({ data, session }: props) => {
                 type="dashed"
                 icon={<EyeOutlined />}
                 onClick={() => {
-                  setOpenModal2(true);
+                  handleOpenModal();
                 }}
+                loading={pending}
               >
                 Detail
               </Button>
@@ -236,27 +289,15 @@ export const TableData = ({ data, session }: props) => {
                   >
                     Tutup
                   </Button>,
-                  <Button
-                    key="download"
-                    type="primary"
-                    onClick={() => {}}
-                    icon={<DownloadOutlined />}
-                  >
-                    Export
-                  </Button>,
                 ]}
               >
                 <Table
                   bordered
                   title={() => {
-
-                    console.log(value)
                     return (
                       <Space direction="vertical">
-                        <Typography>
-                          Pembuat : {value.reporter?.name}
-                        </Typography>
-                        <Typography>Shift : {value.reporter?.shift}</Typography>
+                        <Typography>Pembuat : {name}</Typography>
+                        <Typography>Shift : {shift}</Typography>
                         <Typography>
                           Dibuat :{" "}
                           {reportDate
@@ -266,6 +307,14 @@ export const TableData = ({ data, session }: props) => {
                       </Space>
                     );
                   }}
+                  footer={() => (
+                    <Typography>
+                      Total Shift 2 :{" "}
+                      {grandTotalShift2
+                        ? formatRupiah(grandTotalShift2)
+                        : "Rp. 0"}
+                    </Typography>
+                  )}
                   scroll={{ x: 0, y: 300 }}
                   columns={ReportValueColumn2}
                   dataSource={dataReportShift2}

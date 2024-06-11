@@ -34,10 +34,7 @@ const ReportStockPage = async (props: ServerProps) => {
   const today = format(new Date(Date.now()), "yyyy-MM-dd");
 
   const todayReportShift1 = reports.some((data: any) => data.report_date.includes(today));
-  const ReportShift1 = reports.some((data: ReportStockProps) => data.report_shift_1 && data.report_date.includes(today));
 
-  // const hasReportShift1 = todayReportShift1 && ReportShift1;
-  
   return (
     <div className="w-full space-y-4">
       <div className="w-full flex flex-col-reverse lg:flex-row items-center justify-between gap-2">
@@ -48,7 +45,7 @@ const ReportStockPage = async (props: ServerProps) => {
           />
         </div>
 
-        {session.hashedToken.shift === "Shift 1" && (
+        {session.hashedToken.shift === "Shift 1" && !todayReportShift1 && (
             <ModalDate
               session={{
                 name: session.hashedToken.name,
@@ -56,16 +53,6 @@ const ReportStockPage = async (props: ServerProps) => {
               }}
             />
           )}
-
-{/*           
-        {hasReportShift1 ? (
-          <></>
-        ) : (
-          <>
-          
-          </>
-        )} */}
-        
       </div>
       <TableData data={reports} session={session.hashedToken} />
       <div className="w-full flex items-center justify-end mt-5">

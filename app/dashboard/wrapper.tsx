@@ -55,7 +55,7 @@ const DashboardLayoutWrapper = ({ children, session }: props) => {
   return (
     <Layout className="w-full min-h-[100dvh] h-full relative">
       <div
-        className="h-[100dvh] overflow-scroll sticky top-0 left-0 shadow-md"
+        className="h-[100dvh] overflow-scroll sticky top-0 left-0"
         style={{
           background: colorBgContainer,
         }}
@@ -77,7 +77,7 @@ const DashboardLayoutWrapper = ({ children, session }: props) => {
       <Layout className="relative">
         <Header
           style={{ background: colorBgContainer }}
-          className="flex items-center !px-2 sticky top-0 !h-14 z-[999] shadow-md"
+          className="flex items-center !px-2 sticky top-0 !h-14 z-[999]"
         >
           <Button
             type="text"
