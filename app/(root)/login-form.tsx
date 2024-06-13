@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
-import { Button, Form, type FormProps, Input, Alert, message } from "antd";
-import { useRouter } from "next/navigation";
+import React, { useState } from "react";
+import { Button, Form, type FormProps, Input, message } from "antd";
 import axios from "axios";
 import { useLocalStorage } from "usehooks-ts";
 
@@ -12,7 +11,6 @@ type FieldType = {
 };
 
 export const LoginForm = () => {
-  const router = useRouter();
   const [value, setValue] = useLocalStorage("funBreadToken", null);
   const [loading, setLoading] = useState(false);
   
@@ -22,14 +20,15 @@ export const LoginForm = () => {
       const res = await axios.post(process.env.NEXT_PUBLIC_API_URL + "/api/auth/login", {
         email: values.email,
         password: values.password
+      }, {
+        withCredentials: true
       });
       message.success(res.data.message)
       setValue(res.data.token)
-      router.push("/dashboard")
+      window.location.href = "/dashboard"
     } catch (error : any) {
-      return message.error(error.response.data.message)
-    } finally {
       setLoading(false)
+      message.error(error.response.data.message)
     }
   }  
 
