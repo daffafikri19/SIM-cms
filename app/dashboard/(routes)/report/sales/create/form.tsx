@@ -18,12 +18,14 @@ import { id } from "date-fns/locale";
 import { formatInputNumber, parserInputNumber } from "@/libs/formatter";
 import axios from "axios";
 import { refresher } from "@/app/api/services/refresher";
+import { useRouter } from "next/navigation";
 
 type props = {
   session: authProps;
 };
 
 export const FormCreate = ({ session }: props) => {
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [form] = Form.useForm();
 
@@ -56,7 +58,7 @@ export const FormCreate = ({ session }: props) => {
     const totalExpenses =
       eatValue +
       Object.values(additionalExpenses).reduce((acc, val) => acc + val, 0);
-    form.setFieldsValue({ expense_cash: totalExpenses });
+    form.setFieldsValue({ expense_cash: totalExpenses, total_expense: totalExpenses });
   }, [eatValue, additionalExpenses, form]);
 
   const handleAdditionalNonCashChange = (
@@ -142,38 +144,29 @@ export const FormCreate = ({ session }: props) => {
       reporter: session.name,
       non_cash: finalData.non_cash,
       expenses: finalData.expenses,
-      total_income: values.income_non_cash + values.income_cash,
+      total_income: Number(values.income_non_cash) + Number(values.income_cash),
       total_cash: values.income_cash,
       total_non_cash: values.income_non_cash,
-      total_expenses: values.expense_cash,
+      total_expences: values.expense_cash,
     };
 
-    console.log(payload);
-
-    // startTransition(async () => {
-    //   await axios
-    //     .post(process.env.NEXT_PUBLIC_API_URL + "/api/report/sales/create", {
-    //       reporter: session.name,
-    //       non_cash: finalData.non_cash,
-    //       expences: finalData.expences,
-    //       total_income: values.income_non_cash + values.income_cash,
-    //       total_cash: values.income_cash,
-    //       total_non_cash: values.income_non_cash,
-    //       total_expences: values.income_cash,
-    //     })
-    //     .then(async (res) => {
-    //       if (res.status !== 200) {
-    //         message.error(res.data.message);
-    //         await refresher({ path: "/dashboard/report/sales" });
-    //       } else {
-    //         message.success(res.data.message);
-    //         await refresher({ path: "/dashboard/report/sales" });
-    //       }
-    //     })
-    //     .catch((error: any) => {
-    //       message.error(`${error.response.data.message}`);
-    //     });
-    // });
+    startTransition(async () => {
+      await axios
+        .post(process.env.NEXT_PUBLIC_API_URL + "/api/report/sales/create", payload)
+        .then(async (res) => {
+          if (res.status !== 201) {
+            message.error(res.data.message);
+            await refresher({ path: "/dashboard/report/sales" });
+          } else {
+            message.success(res.data.message);
+            await refresher({ path: "/dashboard/report/sales" });
+            
+          }
+        })
+        .catch((error: any) => {
+          message.error(`${error.response.data.message}`);
+        });
+    });
   };
 
   return (
@@ -411,7 +404,7 @@ export const FormCreate = ({ session }: props) => {
               <div className="w-full">
                 <Form.Item
                   className="!w-fit float-end mt-5 !mb-0"
-                  label="Pengeluaran"
+                  label="Total"
                   name={"expense_cash"}
                   shouldUpdate
                 >
@@ -420,6 +413,11 @@ export const FormCreate = ({ session }: props) => {
                     prefix="Rp."
                     formatter={formatInputNumber}
                     parser={parserInputNumber}
+                    onChange={(value) => {
+                      const total_expense = form.getFieldValue("expense_cash");
+
+                      form.setFieldValue("total_expense", total_expense)
+                    }}
                   />
                 </Form.Item>
               </div>
@@ -428,6 +426,29 @@ export const FormCreate = ({ session }: props) => {
 
           <Card className="shadow-md float-right">
             <div className="w-full flex flex-col gap-2">
+              
+            <Form.Item
+              className="!w-full !mb-0"
+              label="Total Pendapatan"
+              name={"total_income"}
+              shouldUpdate
+              rules={[{ required: true, message: "harap isi pendapatan tunai" }]}
+            >
+              <InputNumber
+                className="!w-full"
+                prefix="Rp."
+                formatter={formatInputNumber}
+                parser={parserInputNumber}
+                onChange={(value) => {
+                  const total_income = form.getFieldValue("total_income");
+                  const income_non_cash = form.getFieldValue("income_non_cash");
+
+                  form.setFieldValue("income_cash", total_income - income_non_cash)
+                }}
+                min={0}
+              />
+            </Form.Item>
+
             <Form.Item
               className="!w-full !mb-0"
               label="Pendapatan Tunai"
@@ -439,6 +460,7 @@ export const FormCreate = ({ session }: props) => {
                 prefix="Rp."
                 formatter={formatInputNumber}
                 parser={parserInputNumber}
+                min={0}
               />
             </Form.Item>
 
@@ -446,27 +468,14 @@ export const FormCreate = ({ session }: props) => {
               className="!w-full !mb-0"
               label="Total Pengeluaran"
               name={"total_expense"}
-              shouldUpdate
+              dependencies={["expense_cash"]}
             >
               <InputNumber
                 className="!w-full"
                 prefix="Rp."
                 formatter={formatInputNumber}
                 parser={parserInputNumber}
-              />
-            </Form.Item>
-
-            <Form.Item
-              className="!w-full !mb-0"
-              label="Total Pendapatan"
-              name={"total_income"}
-              shouldUpdate
-            >
-              <InputNumber
-                className="!w-full"
-                prefix="Rp."
-                formatter={formatInputNumber}
-                parser={parserInputNumber}
+                min={0}
               />
             </Form.Item>
             </div>

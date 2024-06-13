@@ -2,13 +2,12 @@ import { Metadata } from "next";
 
 import { LoginForm } from "./login-form";
 import { BrandLogo } from "../../components/navbar/brand-logo";
-import { ServerProps } from "@/types";
 
 export const metadata: Metadata = {
   title: "Fun Bread Bakery - CMS",
 };
 
-export default async function HomePage(props: ServerProps) {
+export default async function HomePage() {
   return (
     <div className="flex items-center justify-center w-full h-full">
       <div className="container relative grid h-[100dvh] full flex-col items-center justify-center md:grid">

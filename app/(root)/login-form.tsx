@@ -12,31 +12,26 @@ type FieldType = {
 };
 
 export const LoginForm = () => {
-  const [pending, startTransition] = useTransition();
-  const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
   const [value, setValue] = useLocalStorage("funBreadToken", null);
-
+  const [loading, setLoading] = useState(false);
+  
   const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
+    setLoading(true)
     try {
-      startTransition(async () => {
-        const res = await axios.post(
-          process.env.NEXT_PUBLIC_API_URL + "/api/auth/login",
-          {
-            email: values.email,
-            password: values.password,
-          },
-          {
-            withCredentials: true,
-          }
-        );
-        setValue(res.data.token);
-        window.location.href = '/dashboard';
-      })
-    } catch (error: any) {
-      setErrorMessage(error.response.data.message);
+      const res = await axios.post(process.env.NEXT_PUBLIC_API_URL + "/api/auth/login", {
+        email: values.email,
+        password: values.password
+      });
+      message.success(res.data.message)
+      setValue(res.data.token)
+      router.push("/dashboard")
+    } catch (error : any) {
+      return message.error(error.response.data.message)
+    } finally {
+      setLoading(false)
     }
-  };
+  }  
 
   return (
     <div className="grid">
@@ -61,15 +56,12 @@ export const LoginForm = () => {
               <Input.Password type="password" />
             </Form.Item>
           </div>
-          {errorMessage && (
-            <Alert message={errorMessage} type="error" showIcon />
-          )}
           <Button
             type="primary"
             htmlType="submit"
-            loading={pending}
+            loading={loading}
             icon
-            disabled={pending}
+            disabled={loading}
           >
             Login
           </Button>
