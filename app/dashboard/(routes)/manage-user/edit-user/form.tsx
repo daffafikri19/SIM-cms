@@ -9,7 +9,7 @@ import {
   Select,
   Space,
   Image,
-  message,
+  App,
 } from "antd";
 import { PlusOutlined, CloseOutlined } from "@ant-design/icons";
 import type { FormProps, InputRef } from "antd";
@@ -28,6 +28,7 @@ export const FormEdit = ({ userData, roleData }: props) => {
   const [formdata, setFormdata] = useState<UserProps>(userData);
   const roleInputRef = useRef<InputRef>(null);
   const [pending, startTransition] = useTransition();
+  const { message } = App.useApp();
 
   const handleSubmitForm: FormProps<UserProps>["onFinish"] = async (values) => {
     startTransition(async () => {

@@ -4,10 +4,9 @@ import Link from "next/link";
 import { DataTable } from "./table-data";
 import { ServerProps } from "@/types";
 import { CustomPagination } from "../../../../components/pagination";
-import { Button, message } from "antd";
+import { Button } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { TableFilter } from "../../../../components/table-filter";
-import { redirect } from "next/navigation";
 
 const fetchDataIngredient = async ({
   take,
@@ -32,8 +31,7 @@ const fetchDataIngredient = async ({
     return res.data.data;
   } catch (error: any) {
     if (error.response) {
-      message.error(error.response.data.message);
-      console.log(error.response.data.errorMessage);
+      console.error(error.response.data.errorMessage);
     }
   }
 };

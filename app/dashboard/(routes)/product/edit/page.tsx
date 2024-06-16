@@ -2,7 +2,7 @@ import { ServerProps } from "@/types";
 import React from "react";
 import { FormEditProduct } from "./form";
 import { redirect } from "next/navigation";
-import { message } from "antd";
+import { App } from "antd";
 import axios from "axios";
 
 const fetchProductById = async ({ id }: { id: string }) => {
@@ -16,8 +16,7 @@ const fetchProductById = async ({ id }: { id: string }) => {
     return res.data.data;
   } catch (error: any) {
     if (error.response) {
-      message.error(error.response.data.message);
-      console.log(error.response.data.errorMessage);
+      console.error(error.response.data.errorMessage);
     }
   }
 };
@@ -43,6 +42,7 @@ const EditProductPage = async ({ params, searchParams }: ServerProps) => {
   const product_id = searchParams?.id as string;
   const productData = await fetchProductById({ id: product_id });
   const categoryProduct = await fetchCategoryProduct();
+  const { message } = App.useApp();
 
   if (!product_id) {
     message.warning("ID produk tidak ada");

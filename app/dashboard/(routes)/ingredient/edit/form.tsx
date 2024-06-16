@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { Button, Form, Input, Select, message } from "antd";
+import { App, Button, Form, Input, InputNumber, Select } from "antd";
 import type { FormProps } from "antd";
 import { IngredientCategoryProps, IngredientProps } from "@/types";
 import { useRouter } from "next/navigation";
-import { updateIngredient } from "@/app/api/mutations/ingredients";
+import axios from "axios";
+import { refresher } from "@/app/api/services/refresher";
+import { formatInputNumber, parserInputNumber } from "@/libs/formatter";
 
 type props = {
   ingredient_id: number;
@@ -21,29 +23,28 @@ export const FormEditIngredient = ({
   const router = useRouter();
   const [formdata, setFormdata] = useState<IngredientProps>(dataIngredient);
   const [pending, startTransition] = useTransition();
+  const { message } = App.useApp();
 
   const handleSubmitForm: FormProps<IngredientProps>["onFinish"] = async (
     values
   ) => {
     startTransition(async () => {
-      await updateIngredient({
+      await axios.post(process.env.NEXT_PUBLIC_API_URL + `/api/ingredient/update/${ingredient_id}`, {
         id: ingredient_id,
         name: values.name,
         category: values.category,
-        price: Number(values.price),
-      })
-        .then((res) => {
-          res?.status === 200
-            ? message.success(res?.message)
-            : message.error(res?.message);
+        price: values.price,
+        unit: values.unit
+      }).then(async (res) => {
+        if(res.status !== 200) {
+          return message.error(res.data.message)
+        } else {
+          await refresher({ path: "/dashboard/ingredient/edit" })
+          await refresher({ path: "/dashboard/ingredient" })
+          message.success(res.data.message)
           return router.push("/dashboard/ingredient");
-        })
-        .catch((error: any) => {
-          if (error.response) {
-            message.error(error.response.data.message);
-            console.log(error.response.data.errorMessage);
-          }
-        });
+        }
+      })
     });
   };
 
@@ -101,24 +102,44 @@ export const FormEditIngredient = ({
         />
       </Form.Item>
 
-      <Form.Item
-        label="Harga Bahan Baku"
-        name={"price"}
-      >
-        <Input
-          name="price"
-          type="number"
-          prefix="Rp."
-          value={formdata.price || 0}
-          onChange={(e) =>
-            setFormdata((prev) => ({
-              ...prev,
-              price: Number(e.target.value),
-            }))
-          }
-          className="w-full lg:!w-1/2"
-        />
-      </Form.Item>
+      <div className="w-1/2 grid grid-cols-2 gap-2">
+        <Form.Item label="Harga Bahan Baku" name={"price"}>
+          <InputNumber
+            name="price"
+            type="number"
+            className="!w-full"
+            prefix="Rp."
+            min={0}
+            value={formdata.price}
+            formatter={formatInputNumber}
+            parser={parserInputNumber}
+            onChange={(value) =>
+              setFormdata((prev) => ({
+                ...prev,
+                price: Number(value),
+              }))
+            }
+          />
+        </Form.Item>
+
+        <Form.Item label="Unit" name={"unit"}>
+          <InputNumber
+            min={0}
+            suffix="gram"
+            className="!w-full"
+            formatter={formatInputNumber}
+            parser={parserInputNumber}
+            name="unit"
+            value={formdata.unit}
+            onChange={(value) => {
+              setFormdata((prev) => ({
+                ...prev,
+                unit: value,
+              }));
+            }}
+          />
+        </Form.Item>
+      </div>
 
       <Form.Item className="w-full lg:w-1/2">
         <div className="flex items-center w-full space-x-4">

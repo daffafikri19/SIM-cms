@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { Button, Form, InputNumber, Table, Typography, message } from "antd";
+import { App, Button, Form, InputNumber, Table, Typography, message } from "antd";
 import type { TableProps } from "antd";
 import { SwapRightOutlined } from "@ant-design/icons";
 import {
@@ -45,8 +45,8 @@ export const TableReportShift2 = ({
   const [pending, startTransition] = useTransition();
   const router = useRouter();
   const [form] = Form.useForm();
+  const { message } = App.useApp();
   const onMobile = useMediaQuery("(max-width: 1024px)");
-  const [messageApi, contextHolder] = message.useMessage();
   const [grandTotal, setGrandTotal] = useState<number | any>(0);
 
   const dataShift1 = reportShiftToday.report_shift_1?.values as any;
@@ -73,10 +73,10 @@ export const TableReportShift2 = ({
         .then(async (res) => {
           if (res.status === 201) {
             await refresher({ path: "/dashboard/report/stock" });
-            messageApi.success(res.data.message);
+            message.success(res.data.message);
             return router.push("/dashboard/report/stock");
           } else {
-            return messageApi.error(res.data.message)
+            return message.error(res.data.message)
           }
         });
     });
@@ -254,7 +254,6 @@ export const TableReportShift2 = ({
 
   return (
     <div className="w-full h-full overflow-x-scroll relative">
-      {contextHolder}
       <Form form={form} onFinish={onFinish} initialValues={initialValues}>
         <div className="overflow-scroll relative">
           <Table

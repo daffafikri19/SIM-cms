@@ -2,11 +2,11 @@
 
 import React, { useState, useTransition } from "react";
 import {
+  App,
   Button,
   Form,
   Input,
   Modal,
-  message,
 } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import axios from "axios";
@@ -16,6 +16,7 @@ export const AddModal = () => {
   const [openModal, setOpenModal] = useState(false);
   const [name, setName] = useState("");
   const [pending, startTransition] = useTransition();
+  const { message } = App.useApp();
 
   const handleOk = async () => {
     if (!name || name.length < 3) {

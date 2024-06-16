@@ -1,15 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
-import { Button, Popconfirm, Table, message } from "antd";
+import { App, Button, Popconfirm, Table } from "antd";
 import type { TableProps } from "antd";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
-import { deleteIngredient } from "@/app/api/mutations/ingredients";
 import { formatRupiah } from "@/libs/formatter";
+import axios from "axios";
+import { refresher } from "@/app/api/services/refresher";
 
 type ColumnsType<T> = TableProps<T>["columns"];
-type TableRowSelection<T> = TableProps<T>["rowSelection"];
 
 interface DataType {
   key: React.Key;
@@ -18,71 +18,84 @@ interface DataType {
   category: string;
 }
 
-const columns: ColumnsType<DataType> = [
-  {
-    title: "No",
-    dataIndex: "id",
-    align: "center",
-    render: (value, record, index) => {
-      return <p>{index + 1}</p>;
-    },
-  },
-  {
-    title: "Nama",
-    dataIndex: "name",
-    align: "center",
-    sortDirections: ["descend"],
-  },
-  {
-    title: "Kategori",
-    dataIndex: "category",
-    align: "center",
-    render: (value, record, index) => {
-      return <p>{value.name}</p>;
-    },
-  },
-  {
-    title: "Harga",
-    dataIndex: "price",
-    align: "center",
-    render: (value, record, index) => {
-      return <p>{formatRupiah(value)}</p>;
-    },
-  },
-  {
-    title: "Aksi",
-    align: "center",
-    dataIndex: "id",
-    render: (id, record, index) => {
-      const handeDeleteIngredient = async () => {
-        await deleteIngredient({ id }).then((res) => {
-          res?.status === 200
-            ? message.success(res?.message)
-            : message.error(res?.message);
-        });
-      };
-      return (
-        <div className="flex items-center justify-center gap-1">
-          <Link href={`/dashboard/ingredient/edit?id=${id}`}>
-            <Button size="small" type="dashed" icon={<EditOutlined />} title="Edit" />
-          </Link>
-          <Popconfirm
-            placement="topLeft"
-            title="Hapus bahan baku"
-            description="Apakah kamu yakin menghapus bahan baku ini?"
-            onConfirm={handeDeleteIngredient}
-            okText="Hapus"
-            cancelText="Batal"
-          >
-            <Button size="small" danger icon={<DeleteOutlined />} title="Hapus" />
-          </Popconfirm>
-        </div>
-      );
-    },
-  },
-];
-
 export const DataTable = ({ data }: { data: DataType[] }) => {
+  const { message } = App.useApp();
+
+  const columns: ColumnsType<DataType> = [
+    {
+      title: "No",
+      dataIndex: "id",
+      align: "center",
+      render: (value, record, index) => {
+        return <p>{index + 1}</p>;
+      },
+    },
+    {
+      title: "Nama",
+      dataIndex: "name",
+      align: "center",
+      sortDirections: ["descend"],
+    },
+    {
+      title: "Kategori",
+      dataIndex: "category",
+      align: "center",
+      render: (value, record, index) => {
+        return <p>{value.name}</p>;
+      },
+    },
+    {
+      title: "Harga",
+      dataIndex: "price",
+      align: "center",
+      render: (value, record, index) => {
+        return <p>{formatRupiah(value)}</p>;
+      },
+    },
+    {
+      title: "Unit",
+      dataIndex: "unit",
+      align: "center",
+      render: (value, record, index) => {
+        return <p>{value} gram</p>
+      }
+    },
+    {
+      title: "Aksi",
+      align: "center",
+      dataIndex: "id",
+      render: (id, record, index) => {
+        const handeDeleteIngredient = async () => {
+          await axios.post(process.env.NEXT_PUBLIC_API_URL + `/api/ingredient/delete/${id}`, { id })
+          .then(async (res) => {
+            if(res.status !== 200) {
+              return message.error(res.data.message)
+            } else {
+              await refresher({ path: "/dashboard/ingredient" })
+              return message.success(res.data.message)
+            }
+          })
+        };
+        return (
+          <div className="flex items-center justify-center gap-1">
+            <Link href={`/dashboard/ingredient/edit?id=${id}`}>
+              <Button size="small" type="dashed" icon={<EditOutlined />} title="Edit" />
+            </Link>
+            <Popconfirm
+              placement="topLeft"
+              title="Hapus bahan baku"
+              description="Apakah kamu yakin menghapus bahan baku ini?"
+              onConfirm={handeDeleteIngredient}
+              okText="Hapus"
+              cancelText="Batal"
+            >
+              <Button size="small" danger icon={<DeleteOutlined />} title="Hapus" />
+            </Popconfirm>
+          </div>
+        );
+      },
+    },
+  ];
 
   return (
     <div className="w-full h-full overflow-x-scroll">

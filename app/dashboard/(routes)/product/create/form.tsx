@@ -7,9 +7,9 @@ import {
   Form,
   Input,
   Select,
-  message,
   InputNumber,
   Image,
+  App,
 } from "antd";
 import type { FormProps } from "antd";
 import { CloseOutlined, PlusOutlined } from "@ant-design/icons";
@@ -29,6 +29,8 @@ type props = {
 
 export const FormCreateProduct = ({ categoryData }: props) => {
   const router = useRouter();
+  const { message } = App.useApp();
+
   const [formdata, setFormdata] = useState<ProductProps>({
     name: "",
     picture: null,

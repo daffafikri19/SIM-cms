@@ -2,7 +2,7 @@
 
 import React from "react";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
-import { ConfigProvider, theme } from "antd";
+import { App, ConfigProvider, theme } from "antd";
 import { useThemeContext } from "@/store/use-theme";
 
 type props = {
@@ -22,7 +22,9 @@ const AuthConfigProvider = ({ children }: props) => {
         algorithm: isDarkMode ? darkAlgorithm : defaultAlgorithm,
       }}
     >
-      <AntdRegistry>{children}</AntdRegistry>
+      <App>
+        <AntdRegistry>{children}</AntdRegistry>
+      </App>
     </ConfigProvider>
   );
 };

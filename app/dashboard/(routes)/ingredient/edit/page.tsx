@@ -2,7 +2,7 @@ import { ServerProps } from "@/types";
 import React from "react";
 import { FormEditIngredient } from "./form";
 import { redirect } from "next/navigation";
-import { message } from "antd";
+import { App } from "antd";
 import axios from "axios";
 
 const fetchIngredientById = async ({ id }: { id: number }) => {
@@ -16,7 +16,7 @@ const fetchIngredientById = async ({ id }: { id: number }) => {
     return res.data.data;
   } catch (error: any) {
     if (error.response) {
-      message.error(error.response.data.message);
+      console.error(error.response.data.message);
     }
   }
 };
@@ -33,12 +33,13 @@ const fetchCategoryIngredient = async () => {
     return category.data;
   } catch (error: any) {
     if (error.response) {
-      message.error(error.response.data.message);
+      console.error(error.response.data.message);
     }
   }
 };
 
 const EditProductPage = async ({ params, searchParams }: ServerProps) => {
+  const { message } = App.useApp()
   const ingredient_id = Number(searchParams?.id);
   const ingredientData = await fetchIngredientById({ id: ingredient_id });
   const categoryProduct = await fetchCategoryIngredient();

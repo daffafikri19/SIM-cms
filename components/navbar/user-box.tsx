@@ -1,7 +1,7 @@
 "use client";
 import React, { useTransition } from "react";
 import axios from "axios";
-import { Dropdown, MenuProps, Typography, message } from "antd";
+import { App, Dropdown, MenuProps, Typography } from "antd";
 import {
   UserOutlined,
   LogoutOutlined,
@@ -11,15 +11,14 @@ import {
 } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import { UseAuth } from "@/store/use-auth";
-import { useLocalStorage, useMediaQuery } from "usehooks-ts";
+import { useMediaQuery } from "usehooks-ts";
 
 export const UserBox = () => {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const { userid, name, email, role, shift } = UseAuth();
+  const { userid, name, role, shift } = UseAuth();
   const onMobile = useMediaQuery("(max-width: 800px)");
-  const [token, setToken] = useLocalStorage("funBreadToken", null);
-
+  const { message } = App.useApp();
   const items: MenuProps["items"] = onMobile
     ? [
         {

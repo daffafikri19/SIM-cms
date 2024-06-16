@@ -1,16 +1,22 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { Button, Divider, Form, Input, InputNumber, Select, message } from "antd";
+import {
+  App,
+  Button,
+  Divider,
+  Form,
+  Input,
+  InputNumber,
+  Select,
+} from "antd";
 import type { FormProps } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { IngredientCategoryProps, IngredientProps } from "@/types";
-
 import { useRouter } from "next/navigation";
-import {
-  createCategoryIngredient,
-  createIngredient,
-} from "@/app/api/mutations/ingredients";
+import { formatInputNumber, parserInputNumber } from "@/libs/formatter";
+import axios from "axios";
+import { refresher } from "@/app/api/services/refresher";
 
 type props = {
   categoryData: IngredientCategoryProps[];
@@ -18,55 +24,57 @@ type props = {
 
 export const FormCreateIngredient = ({ categoryData }: props) => {
   const router = useRouter();
+  const { message } = App.useApp();
+
   const [formdata, setFormdata] = useState<IngredientProps>({
     name: "",
     category: {
       id: 0,
       name: "",
     },
-    price: 0
+    price: 0,
+    unit: 0,
   });
   const [pending, startTransition] = useTransition();
 
   const handleSubmitForm: FormProps<IngredientProps>["onFinish"] = async (
     values
   ) => {
+    if (!values.category) {
+      return message.error("nama bahan baku harus diisi");
+    }
     startTransition(async () => {
-      await createIngredient({
-        name: values.name,
-        category: values.category,
-        price: Number(values.price),
-      })
-        .then((res) => {
-          res?.status === 201
-            ? message.success(res?.message)
-            : message.error(res?.message);
-          return router.push("/dashboard/ingredient");
+      await axios
+        .post(process.env.NEXT_PUBLIC_API_URL + "/api/ingredient/create", {
+          name: values.name,
+          category: values.category,
+          price: Number(values.price),
+          unit: Number(values.unit),
         })
-        .catch((error) => {
-          if (error.response) {
-            message.error(error.response.data.message);
-            console.log(error.response.data.errorMessage);
+        .then(async (res) => {
+          if (res.status !== 201) {
+            message.error(res.data.message);
+          } else {
+            message.success(res.data.message);
+            await refresher({ path: "/dashboard/ingredient" });
+            return router.push("/dashboard/ingredient");
           }
         });
     });
   };
 
   const handleCreateNewCategory = async () => {
-    await createCategoryIngredient({ name: formdata.category.name }).then(
-      (res) => {
-        setFormdata((prev) => ({
-          ...prev,
-          category: {
-            id: 0,
-            name: "",
-          },
-        }));
-        return res?.status === 201
-          ? message.success(res?.message)
-          : message.error(res?.message);
+    await axios.post(process.env.NEXT_PUBLIC_API_URL + "/api/ingredient/category/create", {
+      name: formdata.category.name
+    }).then(async (res) => {
+      if(res.status !== 201) {
+        return message.error(res.data.message)
+      } else {
+        await refresher({ path: "/dashboard/ingredient" })
+        await refresher({ path: "/dashboard/ingredient/create" })
+        return message.success(res.data.message)
       }
-    );
+    })
   };
 
   return (
@@ -143,28 +151,44 @@ export const FormCreateIngredient = ({ categoryData }: props) => {
         />
       </Form.Item>
 
-      <Form.Item
-        label="Harga Bahan Baku"
-        name={"price"}
-        className="w-full lg:!w-1/2"
-      >
-        <div className="flex items-center">
-        <Input
-          name="price"
-          type="number"
-          prefix="Rp."
-          value={formdata.price || 0}
-          onChange={(e) =>
-            setFormdata((prev) => ({
-              ...prev,
-              price: Number(e.target.value),
-            }))
-          }
-          className="flex-1"
-        />
-        <Input name="satuan" type="number" placeholder="satuan" suffix="gram" className="!w-fit" />
-        </div>
-      </Form.Item>
+      <div className="w-1/2 grid grid-cols-2 gap-2">
+        <Form.Item label="Harga Bahan Baku" name={"price"}>
+          <InputNumber
+            name="price"
+            type="number"
+            className="!w-full"
+            prefix="Rp."
+            min={0}
+            value={formdata.price}
+            formatter={formatInputNumber}
+            parser={parserInputNumber}
+            onChange={(value) =>
+              setFormdata((prev) => ({
+                ...prev,
+                price: Number(value),
+              }))
+            }
+          />
+        </Form.Item>
+
+        <Form.Item label="Unit" name={"unit"}>
+          <InputNumber
+            min={0}
+            suffix="gram"
+            className="!w-full"
+            formatter={formatInputNumber}
+            parser={parserInputNumber}
+            name="unit"
+            value={formdata.unit}
+            onChange={(value) => {
+              setFormdata((prev) => ({
+                ...prev,
+                unit: value,
+              }));
+            }}
+          />
+        </Form.Item>
+      </div>
 
       <Form.Item className="w-full lg:w-1/2">
         <div className="flex items-center w-full space-x-4">

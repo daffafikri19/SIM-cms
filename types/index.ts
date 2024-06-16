@@ -70,7 +70,8 @@ export type CategoryProps = {
 export type IngredientProps = {
   name: string;
   category: IngredientCategoryProps;
-  price: number | null;
+  price: number;
+  unit: number;
 };
 
 export type IngredientCategoryProps = {

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button, Form, type FormProps, Input, message } from "antd";
+import { Button, Form, type FormProps, Input, App } from "antd";
 import axios from "axios";
 import { useLocalStorage } from "usehooks-ts";
 
@@ -13,6 +13,7 @@ type FieldType = {
 export const LoginForm = () => {
   const [value, setValue] = useLocalStorage("funBreadToken", null);
   const [loading, setLoading] = useState(false);
+  const { message } = App.useApp();
   
   const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
     setLoading(true)

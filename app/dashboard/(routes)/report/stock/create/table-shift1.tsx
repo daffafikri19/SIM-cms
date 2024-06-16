@@ -5,7 +5,7 @@ import React, {
   useState,
   useTransition,
 } from "react";
-import { Button, Form, InputNumber, Table, Typography, message } from "antd";
+import { App, Button, Form, InputNumber, Table, Typography, message } from "antd";
 import type { TableProps } from "antd";
 import { SwapRightOutlined } from "@ant-design/icons";
 import {
@@ -48,11 +48,11 @@ export const TableReportShift1 = ({
   const [pending, startTransition] = useTransition();
   const router = useRouter();
   const [form] = Form.useForm();
-  const [messageApi, contextHolder] = message.useMessage();
+  const { message } = App.useApp();
   const { currentDate } = useCurrentDate();
   const [initialValue, setInitialValue] = useState<any>();
   const [grandTotal, setGrandTotal] = useState<number | any>(0);
-
+  
   useEffect(() => {
     const getDataReportYesterday = async () => {
       const res = await fetchReportShiftYesterday({
@@ -89,15 +89,15 @@ export const TableReportShift1 = ({
         .then(async (res) => {
           if (res.status === 201) {
             await refresher({ path: "/dashboard/report/stock" });
-            messageApi.success(res.data.message);
+            message.success(res.data.message);
             return router.push("/dashboard/report/stock");
           } else if (res.status === 404) {
-            messageApi.warning(
+            message.warning(
               "Sesi aplikasi telah berakhir, silahkan login kembali"
             );
             return router.push("/");
           } else {
-            return messageApi.error(res.data.message);
+            return message.error(res.data.message);
           }
         });
     });
@@ -383,7 +383,6 @@ export const TableReportShift1 = ({
 
   return (
     <div className="w-full h-full overflow-x-scroll relative">
-      {contextHolder}
       <Form form={form} onFinish={onFinish} initialValues={initialValue}>
         <div className="overflow-scroll relative">
           <Table

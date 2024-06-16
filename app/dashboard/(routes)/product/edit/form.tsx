@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { Button, Form, Input, Select, message, InputNumber, Image } from "antd";
+import { Button, Form, Input, Select, message, InputNumber, Image, App } from "antd";
 import type { FormProps } from "antd";
 import { CloseOutlined } from "@ant-design/icons";
 import { ProductProps } from "@/types";
@@ -28,6 +28,7 @@ export const FormEditProduct = ({
   const router = useRouter();
   const [formdata, setFormdata] = useState<ProductProps>(dataProduct);
   const [pending, startTransition] = useTransition();
+  const { message } = App.useApp();
 
   const handleSubmitForm: FormProps<ProductProps>["onFinish"] = async (
     values

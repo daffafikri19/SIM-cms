@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { Button, Form, Input, Modal, message } from "antd";
+import { App, Button, Form, Input, Modal, message } from "antd";
 import { EditOutlined } from "@ant-design/icons";
 import axios from "axios";
 import { refresher } from "@/app/api/services/refresher";
@@ -14,6 +14,7 @@ export const EditModal = ({ id }: props) => {
   const [openModal, setOpenModal] = useState(false);
   const [name, setName] = useState("");
   const [pending, startTransition] = useTransition();
+  const { message } = App.useApp();
 
   const getCategoryId = async () => {
     await axios.post(process.env.NEXT_PUBLIC_API_URL + `/api/product/category/get/${id}`, {

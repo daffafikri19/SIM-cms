@@ -10,6 +10,7 @@ import {
   Space,
   Image,
   message,
+  App,
 } from "antd";
 import { PlusOutlined, CloseOutlined } from "@ant-design/icons";
 import type { FormProps, InputRef } from "antd";
@@ -34,7 +35,8 @@ export const FormRegister = ({ roleData }: props) => {
     shift: null,
   });
   const roleInputRef = useRef<InputRef>(null);
-
+  const { message } = App.useApp();
+  
   const handleSubmitForm: FormProps<RegisterProps>["onFinish"] = async (
     values
   ) => {

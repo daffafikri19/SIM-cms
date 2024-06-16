@@ -2,21 +2,21 @@
 
 import React, { useState, useTransition } from "react";
 import {
+  App,
   Button,
   Form,
-  FormProps,
   Input,
   Modal,
-  Popconfirm,
-  message,
 } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import { createCategoryIngredient } from "@/app/api/mutations/ingredients";
+import axios from "axios";
+import { refresher } from "@/app/api/services/refresher";
 
 export const AddModal = () => {
   const [openModal, setOpenModal] = useState(false);
   const [name, setName] = useState("");
   const [pending, startTransition] = useTransition();
+  const { message } = App.useApp();
 
   const handleOk = async () => {
     if (!name || name.length <= 3) {
@@ -24,18 +24,18 @@ export const AddModal = () => {
     }
 
     startTransition(async () => {
-      await createCategoryIngredient({
-        name: name,
+      await axios.post(process.env.NEXT_PUBLIC_API_URL + "/api/ingredient/category/create", {
+        name: name
+      }).then(async (res) => {
+        if(res.status !== 201) {
+          return message.error(res.data.message)
+        } else {
+          await refresher({ path: "/dashboard/ingredient/category" })
+          message.success(res.data.message)
+          setName("")
+          setOpenModal(false)
+        }
       })
-        .then((res) => {
-          res?.status === 201
-            ? message.success(res?.message)
-            : message.error(res?.message);
-        })
-        .then(() => {
-          setName("");
-          setOpenModal(false);
-        });
     });
   };
 

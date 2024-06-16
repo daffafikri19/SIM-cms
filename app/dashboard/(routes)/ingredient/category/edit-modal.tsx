@@ -1,33 +1,33 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import {
-  Button,
-  Form,
-  Input,
-  Modal,
-  message,
-} from "antd";
+import { App, Button, Form, Input, Modal } from "antd";
 import { EditOutlined } from "@ant-design/icons";
-import { editCategoryIngredient, fetchCategoryIngredientId } from "@/app/api/mutations/ingredients";
+import axios from "axios";
+import { refresher } from "@/app/api/services/refresher";
 
 type props = {
-  id: number
-}
-export const EditModal = ({ id } : props) => {
+  id: number;
+};
+export const EditModal = ({ id }: props) => {
   const [openModal, setOpenModal] = useState(false);
   const [name, setName] = useState("");
   const [pending, startTransition] = useTransition();
+  const { message } = App.useApp();
 
   const getCategoryId = async () => {
-    await fetchCategoryIngredientId(id)
-      .then((res) => {
-        const data = res.data;
-        setName(data.name);
-      })
-      .catch((err) => {
-        if (err.message) {
-          message.error(err.message);
+    await axios
+      .post(
+        process.env.NEXT_PUBLIC_API_URL + `/api/ingredient/category/get/${id}`,
+        { id }
+      )
+      .then(async (res) => {
+        if (res.status !== 200) {
+          return message.error(res.data.message);
+        } else {
+          await refresher({ path: "/dashboard/ingredient/cateogory" });
+          setName(res.data.data.name);
+          return res.data.data;
         }
       });
   };
@@ -38,18 +38,24 @@ export const EditModal = ({ id } : props) => {
     }
 
     startTransition(async () => {
-      await editCategoryIngredient({
-        id: id,
-        name: name,
-      })
-        .then((res) => {
-          res?.status === 200
-            ? message.success(res?.message)
-            : message.error(res?.message);
-        })
-        .then(() => {
-          setName("");
-          setOpenModal(false);
+      await axios
+        .patch(
+          process.env.NEXT_PUBLIC_API_URL +
+            `/api/ingredient/category/update/${id}`,
+          {
+            id: id,
+            name: name,
+          }
+        )
+        .then(async (res) => {
+          if (res.status !== 200) {
+            return message.error(res.data.message);
+          } else {
+            await refresher({ path: "/dashboard/ingredient/category" });
+            setName("");
+            setOpenModal(false);
+            return message.success(res.data.message);
+          }
         });
     });
   };
@@ -70,16 +76,23 @@ export const EditModal = ({ id } : props) => {
         onCancel={() => setOpenModal(false)}
         onOk={handleOk}
         open={openModal}
-        okText="Simpan"
-        okButtonProps={{ htmlType: "submit" }}
-        cancelText="batal"
         confirmLoading={pending}
+        footer={[
+          <Button key="back" type="dashed" onClick={() => setOpenModal(false)}>
+            Tutup
+          </Button>,
+          <Button
+            key="submit"
+            type="primary"
+            loading={pending}
+            disabled={pending}
+            onClick={handleOk}
+          >
+            Simpan
+          </Button>,
+        ]}
       >
-        <Form 
-        className="mt-10" 
-        layout="vertical"
-        defaultValue={name}
-        >
+        <Form className="mt-10" layout="vertical" defaultValue={name}>
           <Form.Item
             label="Nama Kategori"
             name={"name"}

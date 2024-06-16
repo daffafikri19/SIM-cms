@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState, useTransition } from "react";
 import {
+  App,
   Button,
   Card,
   Form,
@@ -8,7 +9,6 @@ import {
   Input,
   InputNumber,
   Typography,
-  message,
 } from "antd";
 import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import { authProps } from "@/types";
@@ -18,16 +18,15 @@ import { id } from "date-fns/locale";
 import { formatInputNumber, parserInputNumber } from "@/libs/formatter";
 import axios from "axios";
 import { refresher } from "@/app/api/services/refresher";
-import { useRouter } from "next/navigation";
 
 type props = {
   session: authProps;
 };
 
 export const FormCreate = ({ session }: props) => {
-  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [form] = Form.useForm();
+  const { message } = App.useApp();
 
   const [additionalNonCash, setAdditionalNonCash] = useState<{
     [key: string]: number;
