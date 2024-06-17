@@ -106,7 +106,6 @@ export const FormEditIngredient = ({
         <Form.Item label="Harga Bahan Baku" name={"price"}>
           <InputNumber
             name="price"
-            type="number"
             className="!w-full"
             prefix="Rp."
             min={0}
@@ -150,7 +149,7 @@ export const FormEditIngredient = ({
             type="dashed"
             htmlType="button"
             disabled={pending}
-            onClick={() => router.back()}
+            onClick={() => router.push("/dashboard/ingredient")}
           >
             Batal
           </Button>

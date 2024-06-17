@@ -48,22 +48,14 @@ export const formatDateLaporan = (tanggal : Date) => {
 };
 
 
-export const transformDataToArray = (data: any) => {
-  return Object.keys(data).map((key, index) => ({
-    id: index + 1,
-    product_name: key,
-    ...data[key],
-  }));
-};
-
-
+// Formatter: Menambahkan titik sebagai pemisah ribuan
 export const formatInputNumber = (value: any) => {
-  if (!value) return '';
-  const numericValue = value.toString().replace(/[^0-9]/g, '');
-  return `${numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
+  if (value === undefined || value === null) return '';
+  return new Intl.NumberFormat('id-ID').format(Number(value));
 };
 
+// Parser: Menghapus pemisah ribuan
 export const parserInputNumber = (value: any) => {
   if (!value) return '';
-  return value.toString().replace(/\./g, '');
-};  
+  return value.replace(/\D/g, '');
+};

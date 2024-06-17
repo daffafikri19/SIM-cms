@@ -3,31 +3,6 @@
 import axios from "axios";
 import { revalidatePath } from "next/cache";
 
-export const deleteProduct = async ({ id }: { id: string }) => {
-  try {
-    const res = await axios.post(
-      process.env.NEXT_PUBLIC_API_URL + `/api/product/delete/${id}`,
-      {
-        id: id,
-      }
-    );
-    revalidatePath("/dashboard/product");
-    revalidatePath("/dashboard/product/edit");
-
-    return {
-      message: res.data.message,
-      status: res.status,
-    };
-  } catch (error: any) {
-    if(error.response) {
-      return {
-        message: error.response.data.message,
-        status: 500,
-      };
-    }
-  }
-};
-
 export const fetchProductForReport = async () => {
   try {
     const res = await fetch(process.env.NEXT_PUBLIC_API_URL + "/api/product/all/report", {

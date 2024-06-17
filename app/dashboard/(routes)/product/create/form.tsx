@@ -148,7 +148,6 @@ export const FormCreateProduct = ({ categoryData }: props) => {
       >
         <InputNumber
           prefix="Rp."
-          type="number"
           name="price"
           formatter={formatInputNumber}
           parser={parserInputNumber}
@@ -218,7 +217,6 @@ export const FormCreateProduct = ({ categoryData }: props) => {
         ]}
       >
         <InputNumber
-          type="number"
           name="max_age"
           suffix="Hari"
           value={formdata.max_age}
@@ -241,7 +239,7 @@ export const FormCreateProduct = ({ categoryData }: props) => {
             type="dashed"
             htmlType="button"
             disabled={pending}
-            onClick={() => router.back()}
+            onClick={() => router.push("/dashboard/product")}
           >
             Batal
           </Button>

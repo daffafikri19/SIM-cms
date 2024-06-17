@@ -28,7 +28,6 @@ import {
   formatDateLaporan,
   formatDateTimeString,
   formatRupiah,
-  transformDataToArray,
 } from "@/libs/formatter";
 import Link from "next/link";
 import { fetchUserDataById } from "@/app/api/mutations/users";
@@ -45,10 +44,17 @@ export const TableData = ({ data, session }: props) => {
   const [openModal1, setOpenModal1] = useState(false);
   const [openModal2, setOpenModal2] = useState(false);
   const [reportDate, setReportDate] = useState<string | Date>("");
-  const { name, setName, shift, setShift } = useReporter();
   const [grandTotalShift1, setGrandTotalShift1] = useState(0);
   const [grandTotalShift2, setGrandTotalShift2] = useState(0);
   const [pending, startTransition] = useTransition();
+
+  const transformDataToArray = (data: any) => {
+    return Object.keys(data).map((key, index) => ({
+      id: index + 1,
+      product_name: key,
+      ...data[key],
+    }));
+  };
 
   const columns: ColumnsType<ReportStockProps> = [
     {
@@ -132,22 +138,13 @@ export const TableData = ({ data, session }: props) => {
               },
             ];
 
-          const handleOpenModal = async () => {
-            startTransition(async () => {
-              const user = await fetchUserDataById({ id: value.reporter });
-              setName(user.name);
-              setShift(user.shift);
-              setOpenModal1(true);
-            });
-          };
-
           return (
             <>
               <Button
                 type="dashed"
                 icon={<EyeOutlined />}
                 onClick={() => {
-                  handleOpenModal();
+                  setOpenModal1(true);
                 }}
                 loading={pending}
               >
@@ -175,8 +172,7 @@ export const TableData = ({ data, session }: props) => {
                   title={() => {
                     return (
                       <Space direction="vertical">
-                        <Typography>Pembuat : {name}</Typography>
-                        <Typography>Shift : {shift}</Typography>
+                        <Typography>Pembuat : {value.reporter}</Typography>
                         <Typography>
                           Dibuat :{" "}
                           {reportDate
@@ -253,22 +249,13 @@ export const TableData = ({ data, session }: props) => {
               },
             ];
 
-          const handleOpenModal = async () => {
-            startTransition(async () => {
-              const user = await fetchUserDataById({ id: value.reporter });
-              setName(user.name);
-              setShift(user.shift);
-              setOpenModal2(true);
-            });
-          };
-
           return (
             <>
               <Button
                 type="dashed"
                 icon={<EyeOutlined />}
                 onClick={() => {
-                  handleOpenModal();
+                  setOpenModal2(true);
                 }}
                 loading={pending}
               >
@@ -296,8 +283,7 @@ export const TableData = ({ data, session }: props) => {
                   title={() => {
                     return (
                       <Space direction="vertical">
-                        <Typography>Pembuat : {name}</Typography>
-                        <Typography>Shift : {shift}</Typography>
+                        <Typography>Pembuat : {value.reporter}</Typography>
                         <Typography>
                           Dibuat :{" "}
                           {reportDate

@@ -68,6 +68,7 @@ export type CategoryProps = {
 };
 
 export type IngredientProps = {
+  id?: number;
   name: string;
   category: IngredientCategoryProps;
   price: number;
@@ -137,14 +138,29 @@ export type DetailReportValueShift2Props = {
 
 export type ReportSalesProps = {
   id?: string;
-  reporter: UserProps;
+  reporter: string;
   total_income: number;
   total_cash: number;
   total_non_cash: number;
-  total_expences: number;
-  non_cash: number| NonCashProps;
-  expences: number | ExpencesProps;
+  total_expenses: number;
+  non_cash: NonCashProps[];
+  expenses: ExpensesProps[];
   report_date: string;
+}
+
+export type ReportIngredientProps = {
+  id?: string;
+  report_date: string;
+  detail: DetailReportIngredientProps[];
+  reporter: UserProps;
+}
+
+export type DetailReportIngredientProps = {
+  id?: number;
+  ingredient_id: number;
+  ingredient: IngredientProps;
+  quantity: number;
+  pieces: number;
 }
 
 export type NonCashProps = {
@@ -154,8 +170,27 @@ export type NonCashProps = {
   amount: number;
 }
 
-export type ExpencesProps = {
+export type ExpensesProps = {
   id?: number;
   amount: number;
   description: string;
+}
+
+export type RecipeProps = {
+  id?: number;
+  name: string;
+    notes?: string;
+    recipes_ingredient: {
+      id?: number;
+      ingredients: {
+        name: string;
+      };
+      dose: number;
+  }[];
+}
+
+export type RecipeIngredient = {
+  id?: number;
+  dose: number;
+  ingredients: IngredientProps;
 }

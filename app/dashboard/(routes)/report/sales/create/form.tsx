@@ -18,6 +18,7 @@ import { id } from "date-fns/locale";
 import { formatInputNumber, parserInputNumber } from "@/libs/formatter";
 import axios from "axios";
 import { refresher } from "@/app/api/services/refresher";
+import { useRouter } from "next/navigation";
 
 type props = {
   session: authProps;
@@ -27,7 +28,7 @@ export const FormCreate = ({ session }: props) => {
   const [pending, startTransition] = useTransition();
   const [form] = Form.useForm();
   const { message } = App.useApp();
-
+  const router = useRouter();
   const [additionalNonCash, setAdditionalNonCash] = useState<{
     [key: string]: number;
   }>({});
@@ -41,7 +42,7 @@ export const FormCreate = ({ session }: props) => {
   const grabValue = Form.useWatch("grab", form) || 0;
   const pesananValue = Form.useWatch("pesanan", form) || 0;
 
-  const eatValue = Form.useWatch("eat", form) || 0;
+  const eatValue = Form.useWatch("Makan", form) || 0;
 
   useEffect(() => {
     const totalNonCash =
@@ -116,7 +117,7 @@ export const FormCreate = ({ session }: props) => {
     };
 
     const expenses = {
-      eat: values.eat || 0,
+      Makan: values.Makan || 0,
       ...additionalExpenses,
     };
 
@@ -146,8 +147,9 @@ export const FormCreate = ({ session }: props) => {
       total_income: Number(values.income_non_cash) + Number(values.income_cash),
       total_cash: values.income_cash,
       total_non_cash: values.income_non_cash,
-      total_expences: values.expense_cash,
+      total_expenses: values.expense_cash,
     };
+    console.log(payload)
 
     startTransition(async () => {
       await axios
@@ -155,11 +157,10 @@ export const FormCreate = ({ session }: props) => {
         .then(async (res) => {
           if (res.status !== 201) {
             message.error(res.data.message);
-            await refresher({ path: "/dashboard/report/sales" });
           } else {
             message.success(res.data.message);
             await refresher({ path: "/dashboard/report/sales" });
-            
+            return router.push("/dashboard/report/sales")
           }
         })
         .catch((error: any) => {
@@ -316,7 +317,7 @@ export const FormCreate = ({ session }: props) => {
               <div className="!w-full !h-full">
                 <FormItem
                   label="makan"
-                  name="eat"
+                  name="Makan"
                   prefix="Rp."
                   type="number"
                   className="!mb-0"
@@ -489,6 +490,7 @@ export const FormCreate = ({ session }: props) => {
               loading={pending}
               htmlType="button"
               danger
+              onClick={() => router.push("/dashboard/report/sales")}
             >
               Batal
             </Button>

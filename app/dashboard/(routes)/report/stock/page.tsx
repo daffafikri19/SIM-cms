@@ -1,13 +1,52 @@
 import React from "react";
 import { TableData } from "./table-data";
-import { ReportStockProps, ServerProps } from "@/types";
-import { fetchReportStock } from "@/app/api/mutations/report";
+import { ServerProps } from "@/types";
 import { TableFilter } from "@/components/table-filter";
 import { CustomPagination } from "@/components/pagination";
 import { parseCookie } from "@/app/api/services/cookies";
 import { redirect } from "next/navigation";
 import { ModalDate } from "./create/modal-date";
 import { format } from "date-fns";
+import { refresher } from "@/app/api/services/refresher";
+import axios from "axios";
+
+export const fetchReportStock = async ({
+  take,
+  skip,
+  search,
+  startDate,
+  endDate,
+}: {
+  take: number;
+  skip: number;
+  search: string | null;
+  startDate: string | null;
+  endDate: string | null;
+}) => {
+  try {
+    const res = await axios.get(
+      process.env.NEXT_PUBLIC_API_URL + "/api/report/stock",
+      {
+        params: {
+          take,
+          skip,
+          search: search ? search : null,
+          startDate: startDate ? startDate : null,
+          endDate: endDate ? endDate : null,
+        },
+      }
+    );
+    await refresher({ path: "/dashboard/report/stock" });
+    return res.data.data;
+  } catch (error: any) {
+    if (error.response) {
+      return {
+        message: error.response.data.message,
+        status: 500,
+      };
+    }
+  }
+};
 
 const ReportStockPage = async (props: ServerProps) => {
   const pageNumbers = Number(props.searchParams?.page || 1);

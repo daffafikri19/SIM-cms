@@ -129,7 +129,6 @@ export const FormEditProduct = ({
       >
         <InputNumber
           prefix="Rp"
-          type="number"
           name="price"
           formatter={formatInputNumber}
           parser={parserInputNumber}
@@ -173,7 +172,6 @@ export const FormEditProduct = ({
         ]}
       >
         <InputNumber
-          type="number"
           name="max_age"
           suffix="Hari"
           value={formdata.max_age}
@@ -196,7 +194,7 @@ export const FormEditProduct = ({
             type="dashed"
             htmlType="button"
             disabled={pending}
-            onClick={() => router.back()}
+            onClick={() => router.push("/dashboard/product")}
           >
             Batal
           </Button>

@@ -1,15 +1,23 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { Button, Modal, Space, Table, TableProps, Typography } from "antd";
 import {
-  ExpencesProps,
+  App,
+  Button,
+  Descriptions,
+  Modal,
+  Space,
+  Table,
+  TableProps,
+  Typography,
+} from "antd";
+import {
+  ExpensesProps,
   NonCashProps,
   ReportSalesProps,
-  UserProps,
   authProps,
 } from "@/types";
-import { formatDateLaporan, formatDateTimeString, formatRupiah, transformDataToArray } from "@/libs/formatter";
+import { formatDateTimeString, formatRupiah } from "@/libs/formatter";
 import { EyeOutlined } from "@ant-design/icons";
 import axios from "axios";
 
@@ -23,8 +31,9 @@ type ColumnsType<T> = TableProps<T>["columns"];
 export const DataTable = ({ data, session }: props) => {
   const [openModal, setOpenModal] = useState(false);
   const [pending, startTransition] = useTransition();
-  const [expences, setExpences] = useState<ExpencesProps[]>([]);
-  const [nonCash, setNonCash] = useState<NonCashProps[]>([])
+  const { message } = App.useApp();
+  const [detail, setDetail] = useState<ReportSalesProps | undefined>();
+
   const columns: ColumnsType<ReportSalesProps> = [
     {
       title: "ID",
@@ -36,105 +45,142 @@ export const DataTable = ({ data, session }: props) => {
       },
     },
     {
-        title: "Tgl Laporan",
-        dataIndex: "report_date",
-        align: "center",
-        render: (value, record, index) => {
-          return (
-            <p>{formatDateTimeString(value)}</p>
-          )
-        }
+      title: "Tgl Laporan",
+      dataIndex: "report_date",
+      align: "center",
+      render: (value, record, index) => {
+        return <p>{formatDateTimeString(value)}</p>;
+      },
     },
     {
       title: "Total Pendapatan",
       dataIndex: "total_income",
       align: "center",
       render: (value, record, index) => {
-        return (
-            <p>{formatRupiah(value)}</p>
-        )
-      }
+        return <p>{formatRupiah(value)}</p>;
+      },
     },
     {
       title: "Pemasukan Tunai",
       dataIndex: "total_cash",
       align: "center",
       render: (value, record, index) => {
-        return (
-            <p>{formatRupiah(value)}</p>
-        )
-      }
+        return <p>{formatRupiah(value)}</p>;
+      },
     },
     {
-        title: "Pemasukan Non Tunai",
-        dataIndex: "total_non_cash",
-        align: "center",
-        render: (value, record, index) => {
-            return (
-                <p>{formatRupiah(value)}</p>
-            )
-        }
+      title: "Pemasukan Non Tunai",
+      dataIndex: "total_non_cash",
+      align: "center",
+      render: (value, record, index) => {
+        return <p>{formatRupiah(value)}</p>;
+      },
     },
     {
-        title: "Total Pengeluaran",
-        dataIndex: "total_expences",
-        align: "center",
-        render: (value, record, index) => {
-            return  (
-                <p>{formatRupiah(value)}</p>
-            )
-        }
+      title: "Total Pengeluaran",
+      dataIndex: "total_expenses",
+      align: "center",
+      render: (value, record, index) => {
+        return <p>{formatRupiah(value)}</p>;
+      },
     },
     {
       title: "Dibuat Oleh",
       dataIndex: "reporter",
       align: "center",
-      render: (value : UserProps, record, index) => {
-        return (
-            <p>{value.name}</p>
-        )
-      }
     },
     {
       title: "Detail",
-      dataIndex: 'id',
+      dataIndex: "id",
       align: "center",
       render: (value, record, index) => {
         const handleOpenModal = async () => {
           startTransition(async () => {
-            const res = await axios.post(process.env.NEXT_PUBLIC_API_URL + `/api/report/sales/get/${value}`, {
-              id: value
-            });
-            setOpenModal(true);
-            console.log(res.data.data)
-            setExpences(res.data.data.expences)
-            setNonCash(res.data.data.non_cash)
-          })
-        }
+            try {
+              const res = await axios.post(
+                process.env.NEXT_PUBLIC_API_URL +
+                  `/api/report/sales/get/${value}`,
+                {
+                  id: value,
+                }
+              );
+              if (res.status === 200) {
+                setOpenModal(true);
+                setDetail(res.data.data);
+              } else {
+                message.error(res.data.message);
+              }
+            } catch (error) {
+              if (axios.isAxiosError(error) && error.response) {
+                message.error(error.response.data.message || "server error");
+              } else {
+                message.error("Error submitting the form");
+              }
+            }
+          });
+        };
 
         return (
           <>
-          <Button type="dashed" icon={<EyeOutlined />} onClick={() => handleOpenModal()} />
-          <Modal
-                open={openModal}
-                onCancel={() => setOpenModal(false)}
-                closable={false}
-                width={1000}
-                footer={[
-                  <Button
-                    key="back"
-                    type="dashed"
-                    onClick={() => setOpenModal(false)}
-                  >
-                    Tutup
-                  </Button>,
-                ]}
-              >
-              </Modal>
+            <Button
+              type="dashed"
+              icon={<EyeOutlined />}
+              onClick={() => {
+                handleOpenModal();
+              }}
+              loading={pending}
+            >
+              Detail
+            </Button>
+            <Modal
+              open={openModal}
+              onCancel={() => setOpenModal(false)}
+              onOk={() => setOpenModal(false)}
+              okText="Download"
+              closable={false}
+              width={1000}
+              footer={[
+                <Button
+                  key="back"
+                  type="dashed"
+                  onClick={() => setOpenModal(false)}
+                >
+                  Tutup
+                </Button>,
+              ]}
+            >
+              <Descriptions title="Rincian Total" className="!p-2 border rounded-lg">
+                <Descriptions.Item label="Total Cash">{detail?.total_cash ? formatRupiah(detail.total_cash) : "Rp. 0"}</Descriptions.Item>
+                <Descriptions.Item label="Total Non Cash">{detail?.total_non_cash ? formatRupiah(detail.total_non_cash) : "Rp. 0"}</Descriptions.Item>
+                <Descriptions.Item label="Total Pengeluaran">{detail?.total_expenses ? formatRupiah(detail.total_expenses) : "Rp. 0"}</Descriptions.Item>
+                <Descriptions.Item label="Total Pendapatan">{detail?.total_income ? formatRupiah(detail.total_income) : "Rp. 0"}</Descriptions.Item>
+              </Descriptions>
+              <div className="grid grid-cols-1 gap-2 lg:grid-cols-2 mt-3">
+              <Descriptions title="Rincian Non Cash" className="!p-2 border rounded-lg">
+                  {detail?.non_cash.map((data) => (
+                    <Descriptions.Item label={data.description} key={data.id}>
+                      {formatRupiah(data.amount)}
+                    </Descriptions.Item>
+                  ))}
+              </Descriptions>
+              <Descriptions title="Rincian Pengeluaran" className="!p-2 border rounded-lg">
+                {detail?.expenses?.map((data) => (
+                  <Descriptions.Item label={data.description} key={data.id}>
+                    {formatRupiah(data.amount)}
+                  </Descriptions.Item>
+                ))}
+              </Descriptions>
+              </div>
+              <Descriptions title="Rincian MetaData" className="!p-2 border rounded-lg !mt-3">
+                <Descriptions.Item label="ID Laporan">{detail?.id}</Descriptions.Item>
+                <Descriptions.Item label="Dibuat pada">{detail?.report_date ? formatDateTimeString(detail.report_date) : "-"}</Descriptions.Item>
+                <Descriptions.Item label="Dibuat Oleh">{detail?.reporter}</Descriptions.Item>
+              </Descriptions>
+            </Modal>
           </>
-        )
-      } 
-    }
+        );
+      },
+    },
   ];
 
   return (

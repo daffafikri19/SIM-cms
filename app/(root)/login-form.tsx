@@ -29,7 +29,9 @@ export const LoginForm = () => {
       window.location.href = "/dashboard"
     } catch (error : any) {
       setLoading(false)
-      message.error(error.response.data.message)
+      if(error.response) {
+        message.error(error.response.data.message)
+      }
     }
   }  
 
