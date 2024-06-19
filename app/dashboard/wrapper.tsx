@@ -101,8 +101,8 @@ const DashboardLayoutWrapper = ({ children, session }: props) => {
             borderRadius: borderRadiusLG,
           }}
         >
-          <BreadCrumb />
-          <Card className="p-1 lg:p-2">{children}</Card>
+          <div className="p-1 lg:p-2"><BreadCrumb /></div>
+          <div className="p-1 lg:p-2">{children}</div>
         </Content>
       </Layout>
     </Layout>

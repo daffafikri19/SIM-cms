@@ -1,17 +1,17 @@
 import React from "react";
 import { FormCreateIngredient } from "./form";
 import axios from "axios";
-import { message } from "antd";
 import { refresher } from "@/app/api/services/refresher";
 
 const fetchCategoryIngredients = async () => {
   try {
-    const res = await axios.post(process.env.NEXT_PUBLIC_API_URL + "/api/ingredients/category/all")
+    const res = await axios.get(process.env.NEXT_PUBLIC_API_URL + "/api/ingredients/category/all")
     await refresher({ path: "/dashboard/ingredient" })
     await refresher({ path: "/dashboard/ingredient/create" })
+    console.log(res.data.data)
     return res.data.data
   } catch (error : any) {
-    return message.error(error.response.data.message)
+    console.error(error.response.data.message)
   }
 }
 

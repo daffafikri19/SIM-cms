@@ -80,6 +80,7 @@ const ReportStockPage = async (props: ServerProps) => {
         <div className="w-full flex-1">
           <TableFilter
             searchTitle="Cari berdasarkan id laporan"
+            enableInput
             enableDatePicker
           />
         </div>

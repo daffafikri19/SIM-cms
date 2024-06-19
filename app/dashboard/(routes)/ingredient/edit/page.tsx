@@ -2,7 +2,6 @@ import { ServerProps } from "@/types";
 import React from "react";
 import { FormEditIngredient } from "./form";
 import { redirect } from "next/navigation";
-import { App } from "antd";
 import axios from "axios";
 
 const fetchIngredientById = async ({ id }: { id: number }) => {
@@ -39,12 +38,10 @@ const fetchCategoryIngredient = async () => {
 };
 
 const EditProductPage = async ({ params, searchParams }: ServerProps) => {
-  const { message } = App.useApp()
   const ingredient_id = Number(searchParams?.id);
   const ingredientData = await fetchIngredientById({ id: ingredient_id });
   const categoryProduct = await fetchCategoryIngredient();
   if (!ingredient_id) {
-    message.warning("ID produk tidak ada");
     redirect("/dashboard/ingredient");
   }
 

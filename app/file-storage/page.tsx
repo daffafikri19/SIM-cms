@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useState } from "react";
 import { Spin } from "antd";
 import { UseFileManager } from "@/store/use-filemanager";
 
 const FileManagerPage = () => {
+  
   UseFileManager({
     onFlmngrLoaded() {
       import("@flmngr/flmngr-react").then((fileManager) => {
@@ -12,7 +13,7 @@ const FileManagerPage = () => {
           isMultiple: null as any,
           isMaximized: true,
           showCloseButton: false,
-          showMaximizeButton: false
+          showMaximizeButton: false,
         });
       });
     },
@@ -20,7 +21,9 @@ const FileManagerPage = () => {
 
   return (
     <div className="w-full h-full flex items-center justify-center">
-      <Spin size="large" />
+      <div className="mt-10">
+       <Spin size="large" />
+      </div>
     </div>
   );
 };
