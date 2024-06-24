@@ -40,28 +40,16 @@ export const UserBox = () => {
           danger: false,
         },
         {
-          label: "Akun Saya",
-          key: "1",
-          icon: <UserOutlined />,
-          danger: false,
-        },
-        {
           label: "Logout",
-          key: "2",
+          key: "1",
           icon: <LogoutOutlined />,
           danger: true,
         },
       ]
     : [
         {
-          label: "Akun Saya",
-          key: "1",
-          icon: <UserOutlined />,
-          danger: false,
-        },
-        {
           label: "Logout",
-          key: "2",
+          key: "1",
           icon: <LogoutOutlined />,
           danger: true,
         },
@@ -69,9 +57,6 @@ export const UserBox = () => {
 
   const onClick: MenuProps["onClick"] = async ({ key }) => {
     if (key === "1") {
-      router.push("/dashboard/my-account");
-    }
-    if (key === "2") {
       startTransition(async () => {
         try {
           const res = await axios.post(process.env.NEXT_PUBLIC_API_URL + "/api/auth/logout", { userid: userid }, {
@@ -101,7 +86,7 @@ export const UserBox = () => {
       <Dropdown menu={{ items, onClick }}>
       <div className="flex flex-col">
           <Typography>{name}</Typography>
-          <Typography>{role}</Typography>
+          <Typography>{role} | {shift ? shift : "-"}</Typography>
         </div>
     </Dropdown>
     )

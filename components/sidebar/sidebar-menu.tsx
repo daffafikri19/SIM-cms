@@ -90,10 +90,10 @@ const items: MenuProps = [
     href: "/dashboard/file-storage",
   },
   {
-    label: "Pengaturan",
+    label: "Pengaturan Akun",
     key: "8",
     icon: <SettingOutlined />,
-    href: "/dashboard/settings",
+    href: "/dashboard/my-account",
   },
 ];
 

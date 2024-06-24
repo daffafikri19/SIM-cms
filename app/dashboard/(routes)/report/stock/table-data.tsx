@@ -30,7 +30,6 @@ import {
   formatRupiah,
 } from "@/libs/formatter";
 import Link from "next/link";
-import { fetchUserDataById } from "@/app/api/mutations/users";
 import { useReporter } from "@/store/use-reporter";
 
 type props = {

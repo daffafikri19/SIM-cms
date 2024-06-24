@@ -2,64 +2,39 @@
 
 import React from "react";
 import { Card, Table, TableProps } from "antd";
-import { ReportSalesProps } from "@/types";
-import { formatDateTimeString } from "@/libs/formatter";
+import { formatDateTimeString, formatRupiah } from "@/libs/formatter";
 
 type ColumnsType<T> = TableProps<T>["columns"];
 
-type tableProps = {
-  id: number;
-  title: string;
+type commenProps = {
+  id: string;
   reporter: string;
   report_date: string;
-};
+}
 
-export const CurrentReportTable = () => {
-  const dummyData = [
-    {
-      id: 1,
-      title: "Title 1",
-      reporter: "Daffa",
-      report_date: new Date(Date.now()).toISOString(),
-    },
-    {
-      id: 2,
-      title: "Title 2",
-      reporter: "Daffa",
-      report_date: new Date(Date.now()).toISOString(),
-    },
-    {
-      id: 3,
-      title: "Title 3",
-      reporter: "Daffa",
-      report_date: new Date(Date.now()).toISOString(),
-    },
-    {
-      id: 4,
-      title: "Title 4",
-      reporter: "Daffa",
-      report_date: new Date(Date.now()).toISOString(),
-    },
-    {
-      id: 5,
-      title: "Title 5",
-      reporter: "Daffa",
-      report_date: new Date(Date.now()).toISOString(),
-    },
-  ];
+type stockProps = {
+  id: string;
+  grand_total: number;
+  report_date: string
+}
 
-  const columns: ColumnsType<tableProps> = [
+
+export const CurrentReportStockTable = ({ data } : { data: stockProps[] }) => {
+
+  const columns: ColumnsType<stockProps> = [
     {
       title: "No",
       dataIndex: "id",
+      render: (value, record, index) => {
+        return <p>{index + 1}</p>
+      }
     },
     {
-      title: "Title",
-      dataIndex: "title",
-    },
-    {
-      title: "Reporter",
-      dataIndex: "reporter",
+      title: "Revenue",
+      dataIndex: "grand_total",
+      render: (value, record, index) => {
+        return <p>{value ? formatRupiah(value) : "Rp. 0"}</p>
+      }
     },
     {
       title: "Report Date",
@@ -83,10 +58,100 @@ export const CurrentReportTable = () => {
       }}
     >
       <Table
-        dataSource={dummyData}
+        dataSource={data}
         columns={columns}
         rowKey={({ id }) => String(id)}
       />
     </Card>
   );
 };
+
+export const CurrentReportSalesTable = ({ data } : { data: commenProps[] }) => {
+
+  const columns: ColumnsType<commenProps> = [
+    {
+      title: "No",
+      dataIndex: "id",
+      render: (value, record, index) => {
+        return <p>{index + 1}</p>
+      }
+    },
+    {
+      title: "Reporter",
+      dataIndex: "reporter",
+    },
+    {
+      title: "Report Date",
+      dataIndex: "report_date",
+      render: (value, record, index) => {
+        return <p>{formatDateTimeString(value)}</p>;
+      },
+    },
+  ];
+
+  return (
+    <Card
+      title="Laporan Sales"
+      styles={{
+        body: {
+          paddingBottom: 0,
+          paddingTop: 0,
+          paddingLeft: 10,
+          paddingRight: 10,
+        },
+      }}
+    >
+      <Table
+        dataSource={data}
+        columns={columns}
+        rowKey={({ id }) => String(id)}
+      />
+    </Card>
+  );
+};
+
+export const CurrentReportIngredientsTable = ({ data } : { data: commenProps[] }) => {
+
+  const columns: ColumnsType<commenProps> = [
+    {
+      title: "No",
+      dataIndex: "id",
+      render: (value, record, index) => {
+        return <p>{index + 1}</p>
+      }
+    },
+    {
+      title: "Reporter",
+      dataIndex: "reporter",
+    },
+    {
+      title: "Report Date",
+      dataIndex: "report_date",
+      render: (value, record, index) => {
+        return <p>{formatDateTimeString(value)}</p>;
+      },
+    },
+  ];
+
+  return (
+    <Card
+      title="Laporan Bahan Baku"
+      styles={{
+        body: {
+          paddingBottom: 0,
+          paddingTop: 0,
+          paddingLeft: 10,
+          paddingRight: 10,
+        },
+      }}
+    >
+      <Table
+        dataSource={data}
+        columns={columns}
+        rowKey={({ id }) => String(id)}
+      />
+    </Card>
+  );
+};
+
+

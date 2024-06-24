@@ -32,7 +32,6 @@ export const SalesChart = () => {
         )
         .then((res) => {
           if (res.status === 200) {
-            console.log(res.data.data);
             setChartData(res.data.data)
           } else {
             message.warning("Internal server error, try to refresh this page");

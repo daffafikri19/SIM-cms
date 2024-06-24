@@ -9,7 +9,6 @@ import {
   Select,
   Space,
   Image,
-  message,
   App,
 } from "antd";
 import { PlusOutlined, CloseOutlined } from "@ant-design/icons";
@@ -17,7 +16,8 @@ import type { FormProps, InputRef } from "antd";
 import { RegisterProps, UserRole } from "@/types";
 import { useRouter } from "next/navigation";
 import { UploadFile } from "@/components/upload-file";
-import { registerUser } from "@/app/api/mutations/users";
+import { refresher } from "@/app/api/services/refresher";
+import axios from "axios";
 
 type props = {
   roleData: UserRole[];
@@ -36,29 +36,34 @@ export const FormRegister = ({ roleData }: props) => {
   });
   const roleInputRef = useRef<InputRef>(null);
   const { message } = App.useApp();
-  
+
   const handleSubmitForm: FormProps<RegisterProps>["onFinish"] = async (
     values
   ) => {
-    await registerUser({
-      name: values.name,
-      email: values.email,
-      profile_picture: formdata.profile_picture || null,
-      password: values.password,
-      confirmPassword: values.confirmPassword,
-      role: values.role,
-      shift: values.shift || null,
-    }).then((res) => {
-      if(res?.status === 201) {
-        message.success(res?.message)
-        return router.push("/dashboard/manage-user");
-      } else {
-        message.error(res?.message); 
+    const registerUser = async () => {
+      try {
+        const res = await axios.post(
+          process.env.NEXT_PUBLIC_API_URL + "/api/auth/register",
+          {
+            name: values.name,
+            email: values.email,
+            profile_picture: formdata.profile_picture || null,
+            password: values.password,
+            confirmPassword: values.confirmPassword,
+            role: values.role,
+            shift: values.shift || null,
+          }
+        );
+
+        await refresher({ path: "/dashboard/manage-user/add-user" });
+        await refresher({ path: "/dashboard/manage-user" });
+        message.success(res.data.message)
+      } catch (error: any) {
+        if (error.response) {
+          message.error(error.response.data.message)
+        }
       }
-    })
-    .catch((err) => {
-      throw new Error(err);
-    });
+    };
   };
 
   const handleFileSelected = (image: string) => {

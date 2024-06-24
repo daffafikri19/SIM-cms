@@ -73,6 +73,7 @@ const ProductsPage = async (props: ServerProps) => {
           <TableFilter
             searchTitle="Cari berdasarkan nama produk"
             enableDatePicker
+            enableInput
           />
         </div>
         <div>

@@ -127,6 +127,8 @@ export const FormCreateProduct = ({ categoryData }: props) => {
           <div className="relative">
             <Image
               src={`${process.env.NEXT_PUBLIC_API_URL + formdata.picture}`}
+              width={100}
+              height={100}
               alt="produk"
             />
             <CloseOutlined

@@ -15,10 +15,7 @@ const fetchCategoryProduct = async () => {
     return category.data;
   } catch (error: any) {
     if (error.response) {
-      return {
-        message: error.response.data.message,
-        status: 500,
-      };
+      console.error(error.response.data.message)
     }
   }
 };

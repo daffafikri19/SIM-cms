@@ -37,6 +37,7 @@ const CategoryProductPage = async (props: ServerProps) => {
         <TableFilter
           searchTitle="Cari berdasarkan nama kategori"
           enableDatePicker={false}
+          enableInput
         />
         </div>
         <div className="flex items-center">

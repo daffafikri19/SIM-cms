@@ -94,7 +94,15 @@ export type UserDisplayProps = {
 export type UserRole = {
   id: number;
   name: string;
+  user?: UserProps[]
+  access?: AccessProps[]
 };
+
+export type AccessProps = {
+  id?: number;
+  key: number;
+  value: boolean;
+}
 
 export type ReportStockProps = {
   id: string;

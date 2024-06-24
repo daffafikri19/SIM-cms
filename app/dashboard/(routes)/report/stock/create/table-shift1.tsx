@@ -18,7 +18,6 @@ import { useMediaQuery } from "usehooks-ts";
 import { authProps } from "@/types";
 import { useRouter } from "next/navigation";
 import { useCurrentDate } from "@/store/use-date";
-import { fetchReportShiftYesterday } from "@/app/api/mutations/products";
 import axios from "axios";
 import { refresher } from "@/app/api/services/refresher";
 
@@ -52,6 +51,22 @@ export const TableReportShift1 = ({
   const { currentDate } = useCurrentDate();
   const [initialValue, setInitialValue] = useState<any>();
   const [grandTotal, setGrandTotal] = useState<number | any>(0);
+  
+  const fetchReportShiftYesterday = async ({ date } : { date: string }) => {
+    try {
+      const res = await axios.post(process.env.NEXT_PUBLIC_API_URL + "/api/report/stock/yesterday", {
+        date: date
+      });
+      return res.data.data;
+    } catch (error: any) {
+      if (error.response) {
+        return {
+          message: error.response.data.message,
+          status: 500,
+        };
+      }
+    }
+  }
   
   useEffect(() => {
     const getDataReportYesterday = async () => {

@@ -1,8 +1,7 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
-import { UserDisplayProps, UserProps, authProps } from "@/types";
+import { UserDisplayProps, authProps } from "@/types";
 import {
   App,
   Avatar,
@@ -11,11 +10,12 @@ import {
   Popconfirm,
   Table,
   TableProps,
-  message,
 } from "antd";
 import { format } from "date-fns";
-import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
-import { deleteUserAccount } from "@/app/api/mutations/users";
+import { DeleteOutlined } from "@ant-design/icons";
+import { ModalEditUser } from "./modal-edit-user";
+import axios from "axios";
+import { refresher } from "@/app/api/services/refresher";
 
 type TabelUserProps = {
   data: UserDisplayProps[];
@@ -26,6 +26,21 @@ type ColumnsType<T> = TableProps<T>["columns"];
 
 export const TableData = ({ data, session }: TabelUserProps) => {
   const { message } = App.useApp();
+
+  const deleteUserAccount = async ({ id } : { id: string }) => {
+    try {
+      const res = await axios.post(process.env.NEXT_PUBLIC_API_URL + `/api/user/delete/${id}`, {
+        id
+      });
+      await refresher({ path: "/dashboard/manage-user" });
+      message.success(res.data.message)
+      return res.data
+    } catch (error: any) {
+      if (error.response) {
+        message.error(error.response.data.message)
+      }
+    }
+  }
 
   const Ownercolumns: ColumnsType<UserDisplayProps> = [
     {
@@ -131,13 +146,11 @@ export const TableData = ({ data, session }: TabelUserProps) => {
   
         return (
           <div className="flex items-center justify-center gap-1">
-            <Link href={`/dashboard/manage-user/edit-user`}>
-              <Button size="small" type="dashed" icon={<EditOutlined />} />
-            </Link>
+            <ModalEditUser userid={id}  />
             <Popconfirm
               placement="topLeft"
-              title="Hapus produk"
-              description="Akun yang dihapus tidak bisa dikembalikan, Apakah kamu yakin menghapus akun ini ?"
+              title="Hapus Akun"
+              description={<p>Apakah kamu yakin menghapus akun ini ? <br /> Tindakan tidak bisa diulang...</p>}
               onConfirm={deleteUser}
               okText="Hapus"
               cancelText="Batal"
@@ -155,7 +168,6 @@ export const TableData = ({ data, session }: TabelUserProps) => {
       title: "No",
       dataIndex: "id",
       align: "center",
-      width: 30,
       render: (value, record, index) => {
         return <p>{index + 1}</p>;
       },
@@ -183,17 +195,15 @@ export const TableData = ({ data, session }: TabelUserProps) => {
     {
       title: "Name",
       dataIndex: "name",
-      width: 100,
     },
     {
       title: "Email",
       dataIndex: "email",
-      width: 100,
     },
     {
       title: "Role",
       dataIndex: "role",
-      width: 100,
+      align: "center",
       render: (value, record, index) => {
         return <p>{value.name}</p>;
       },
@@ -201,7 +211,7 @@ export const TableData = ({ data, session }: TabelUserProps) => {
     {
       title: "Shift",
       dataIndex: "shift",
-      width: 100,
+      align: "center",
       render: (value, record, index) => {
         if (!value) {
           return <p>no data</p>;
