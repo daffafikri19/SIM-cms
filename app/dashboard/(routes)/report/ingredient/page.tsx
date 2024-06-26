@@ -72,6 +72,7 @@ const ReportIngredientPage = async (props: ServerProps) => {
           <TableFilter
             searchTitle="Cari berdasarkan id laporan"
             enableDatePicker
+            enableInput
           />
         </div>
         <div>

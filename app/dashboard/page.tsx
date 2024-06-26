@@ -3,7 +3,6 @@ import { TotalSalesChart } from "@/components/summary/total-sales-chart";
 import { Top5ProductChart } from "@/components/summary/top-products-chart";
 import { SalesChart } from "@/components/summary/sales-chart";
 import { CurrentReportIngredientsTable, CurrentReportSalesTable, CurrentReportStockTable } from "@/components/summary/current-report-table";
-import { revalidatePath } from "next/cache";
 import { refresher } from "../api/services/refresher";
 import axios from "axios";
 

@@ -32,7 +32,7 @@ export type UserProps = {
 export type MenuProps = {
   label: string;
   key: string;
-  icon: React.JSX.Element;
+  icon?: React.JSX.Element;
   href?: string | undefined;
   children?: {
     label: string;
@@ -100,7 +100,7 @@ export type UserRole = {
 
 export type AccessProps = {
   id?: number;
-  key: number;
+  key: string;
   value: boolean;
 }
 

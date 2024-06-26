@@ -15,7 +15,7 @@ export const LoginForm = () => {
   const [loading, setLoading] = useState(false);
   const { message } = App.useApp();
   
-  const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
+  const handleLogin: FormProps<FieldType>["onFinish"] = async (values) => {
     setLoading(true)
     try {
       const res = await axios.post(process.env.NEXT_PUBLIC_API_URL + "/api/auth/login", {
@@ -37,7 +37,7 @@ export const LoginForm = () => {
 
   return (
     <div className="grid">
-      <Form name="login" layout="vertical" onFinish={onFinish}>
+      <Form name="login" layout="vertical" onFinish={handleLogin}>
         <div className="grid gap-2">
           <div className="grid gap-1">
             <Form.Item<FieldType>

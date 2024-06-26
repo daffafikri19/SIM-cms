@@ -10,12 +10,11 @@ import { useSidebar } from "@/store/use-sidebar";
 import { useMediaQuery } from "usehooks-ts";
 import { BreadCrumb } from "../../components/breadcrumb";
 import { authProps } from "@/types";
-import { JwtPayload } from "jwt-decode";
 import { UseAuth } from "@/store/use-auth";
 
 type props = {
   children: React.ReactNode;
-  session?: authProps & JwtPayload;
+  session?: authProps;
 };
 
 const { Header, Sider, Content } = Layout;

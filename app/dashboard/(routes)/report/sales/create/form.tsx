@@ -149,8 +149,7 @@ export const FormCreate = ({ session }: props) => {
       total_non_cash: values.income_non_cash,
       total_expenses: values.expense_cash,
     };
-    console.log(payload)
-
+    
     startTransition(async () => {
       await axios
         .post(process.env.NEXT_PUBLIC_API_URL + "/api/report/sales/create", payload)

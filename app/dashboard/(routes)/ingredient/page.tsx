@@ -57,6 +57,7 @@ const IngredientPage = async (props: ServerProps) => {
           <TableFilter
             searchTitle="Cari berdasarkan nama bahan baku"
             enableDatePicker={false}
+            enableInput
           />
         </div>
         <div>

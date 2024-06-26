@@ -9,6 +9,7 @@ import { Button } from "antd";
 import Link from "next/link";
 import { ServerProps } from "@/types";
 import axios from "axios";
+import { refresher } from "@/app/api/services/refresher";
 
 const fetchAllSalesReport = async ({
   take,
@@ -35,7 +36,7 @@ const fetchAllSalesReport = async ({
       },
     }
   );
-
+  await refresher({ path: "/dashboard/report/sales" });
   return result.data.data;
 };
 

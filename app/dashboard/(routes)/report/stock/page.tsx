@@ -1,6 +1,6 @@
 import React from "react";
 import { TableData } from "./table-data";
-import { ServerProps } from "@/types";
+import { ReportStockProps, ServerProps } from "@/types";
 import { TableFilter } from "@/components/table-filter";
 import { CustomPagination } from "@/components/pagination";
 import { parseCookie } from "@/app/api/services/cookies";
@@ -10,7 +10,7 @@ import { format } from "date-fns";
 import { refresher } from "@/app/api/services/refresher";
 import axios from "axios";
 
-export const fetchReportStock = async ({
+const fetchReportStock = async ({
   take,
   skip,
   search,
@@ -37,34 +37,30 @@ export const fetchReportStock = async ({
       }
     );
     await refresher({ path: "/dashboard/report/stock" });
-    return res.data.data;
+    return res.data.data as any;
   } catch (error: any) {
-    if (error.response) {
-      return {
-        message: error.response.data.message,
-        status: 500,
-      };
-    }
+    console.error("Failed to fetch report stock:", error);
+    throw error;
   }
 };
 
 const ReportStockPage = async (props: ServerProps) => {
   const pageNumbers = Number(props.searchParams?.page || 1);
   const pageSize = Number(props.searchParams?.limit || 10);
-  const searchValue = props.searchParams?.search || null;
-  const startDateValue = props.searchParams?.startDate || null;
-  const endDateValue = props.searchParams?.endDate || null;
+  const searchValue = String(props.searchParams?.search) || null;
+  const startDateValue = String(props.searchParams?.startDate) || null;
+  const endDateValue = String(props.searchParams?.endDate) || null;
   const take = pageSize;
   const skip = (pageNumbers - 1) * take;
   const dataReport = await fetchReportStock({
-    skip: skip,
-    take: take,
-    search: searchValue ? searchValue : (null as any),
-    startDate: startDateValue ? startDateValue : (null as any),
-    endDate: endDateValue ? endDateValue : (null as any),
+    skip: Number(skip),
+    take: Number(take),
+    search: searchValue ? String(searchValue) : null,
+    startDate: startDateValue ? String(startDateValue) : null,
+    endDate: endDateValue ? String(endDateValue) : null,
   });
-  const reports = dataReport.result;
-  const metadata = dataReport.metadata;
+  const reports = dataReport.result as any;
+  const metadata = dataReport.metadata as any;
   const session = await parseCookie();
   if (!session.hashedToken.userid) {
     redirect("/");
@@ -72,7 +68,9 @@ const ReportStockPage = async (props: ServerProps) => {
 
   const today = format(new Date(Date.now()), "yyyy-MM-dd");
 
-  const todayReportShift1 = reports.some((data: any) => data.report_date.includes(today));
+  const todayReportShift1 = reports.some((data: any) =>
+    data.report_date.includes(today)
+  );
 
   return (
     <div className="w-full space-y-4">
@@ -86,13 +84,13 @@ const ReportStockPage = async (props: ServerProps) => {
         </div>
 
         {session.hashedToken.shift === "Shift 1" && !todayReportShift1 && (
-            <ModalDate
-              session={{
-                name: session.hashedToken.name,
-                shift: session.hashedToken.shift,
-              }}
-            />
-          )}
+          <ModalDate
+            session={{
+              name: session.hashedToken.name,
+              shift: session.hashedToken.shift,
+            }}
+          />
+        )}
       </div>
       <TableData data={reports} session={session.hashedToken} />
       <div className="w-full flex items-center justify-end mt-5">
