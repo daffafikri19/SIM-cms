@@ -37,30 +37,31 @@ const fetchReportStock = async ({
       }
     );
     await refresher({ path: "/dashboard/report/stock" });
-    return res.data.data as any;
+    return res.data.data;
   } catch (error: any) {
     console.error("Failed to fetch report stock:", error);
-    throw error;
   }
 };
 
 const ReportStockPage = async (props: ServerProps) => {
   const pageNumbers = Number(props.searchParams?.page || 1);
   const pageSize = Number(props.searchParams?.limit || 10);
-  const searchValue = String(props.searchParams?.search) || null;
-  const startDateValue = String(props.searchParams?.startDate) || null;
-  const endDateValue = String(props.searchParams?.endDate) || null;
+  const searchValue = props.searchParams?.search || null;
+  const startDateValue = props.searchParams?.startDate || null;
+  const endDateValue = props.searchParams?.endDate || null;
   const take = pageSize;
   const skip = (pageNumbers - 1) * take;
   const dataReport = await fetchReportStock({
     skip: Number(skip),
     take: Number(take),
-    search: searchValue ? String(searchValue) : null,
-    startDate: startDateValue ? String(startDateValue) : null,
-    endDate: endDateValue ? String(endDateValue) : null,
+    search: searchValue ? searchValue : (null as any),
+    startDate: startDateValue ? startDateValue : (null as any),
+    endDate: endDateValue ? endDateValue : (null as any),
   });
-  const reports = dataReport.result as any;
-  const metadata = dataReport.metadata as any;
+  
+  const reports = dataReport.result;
+  const metadata = dataReport.metadata;
+  
   const session = await parseCookie();
   if (!session.hashedToken.userid) {
     redirect("/");
